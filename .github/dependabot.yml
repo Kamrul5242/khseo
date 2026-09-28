@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions current: Dependabot proposes a PR with the new SHA and
+  # version comment, which then runs through the tests, CodeQL and dependency review.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -35,8 +35,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import validate_json  # noqa: E402
+import khseo_version  # noqa: E402
 
-VERSION = "1.2.0"
+VERSION = khseo_version.KHSEO_VERSION  # report engine = package release
 PRI_COLOR = {"P0": "#b71c1c", "P1": "#d84315", "P2": "#b8860b", "P3": "#455a64"}
 PRI_NAME = {"P0": "Critical", "P1": "High", "P2": "Medium", "P3": "Enhancement"}
 STATUS_COLOR = {"critical": "#b71c1c", "needs_work": "#d84315", "healthy": "#2e7d32"}
@@ -213,7 +214,8 @@ ul {{ margin: 4px 0; padding-left: 18px; }}
 <p>{_e(scope.get("note", ""))}</p>
 {ul(scope["urls_inspected"])}
 {"<p><b>Host capabilities:</b></p><div class='caps'>" + caps + "</div>" if caps else ""}
-<div class="endblock"><h2>Not tested</h2>
+<div class="endblock"><p class="muted">Versions: {_e(khseo_version.banner(a.get("versions") or khseo_version.versions(), brand=not br["hide_prepared_by"]))}</p>
+<h2>Not tested</h2>
 {ul(a["not_tested"])}
 <p class="disclaimer">{_e(DISCLAIMER)} {_e(br['credit'])}</p></div>
 </body></html>"""
@@ -462,6 +464,8 @@ def pdf_builtin(a: dict, pdf_path: Path, br: dict | None = None) -> None:
     if a.get("capabilities"):
         d.para("Host capabilities: " + ", ".join(f"{k.replace('_', ' ')}: {v}" for k, v in a["capabilities"].items()),
                size=9, color="#3d4a5c")
+    d.para("Versions: " + khseo_version.banner(a.get("versions") or khseo_version.versions(),
+                                               brand=not br["hide_prepared_by"]), size=8.5, color="#5b6573")
     d.heading("Not tested")
     for item in a["not_tested"]:
         d.para(f"* {item}", size=9.5, gap=1)

@@ -42,6 +42,11 @@ load only the reference files that mode needs, and deliver in the matching outpu
 
 Full rule set: [rules/core-rules.md](rules/core-rules.md).
 
+**Versions.** The package release is in [VERSION](VERSION). Spec (behavior/governance) and
+schema versions are in `scripts/khseo_version.py`, and every probe output, audit JSON and PDF
+report states them. `KHSEO status` shows them. When results differ between runs, compare
+versions first.
+
 ## 1. Mode detection
 
 Classify the request (it can be several at once), then open the matching workflow file.

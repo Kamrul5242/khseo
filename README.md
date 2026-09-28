@@ -1,6 +1,7 @@
 # KHSEO — Universal SEO + AI Search + Content Skill
 
 [![tests](https://github.com/Kamrul5242/khseo/actions/workflows/tests.yml/badge.svg)](https://github.com/Kamrul5242/khseo/actions/workflows/tests.yml)
+[![codeql](https://github.com/Kamrul5242/khseo/actions/workflows/codeql.yml/badge.svg)](https://github.com/Kamrul5242/khseo/actions/workflows/codeql.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 **KHSEO** (Kamrul Hasan SEO) is one skill for auditing, fixing, writing and optimizing the modern
@@ -212,11 +213,16 @@ khseo/
 python tests/run_tests.py
 ```
 
-56 offline tests cover the skill structure and links, every JSON contract and the honesty
+59 offline tests cover the skill structure and links, every JSON contract and the honesty
 lint, the probe (including RFC 9309 robots, SSRF/DNS-pinning, gzip-bomb, challenge pages and
 raw-vs-rendered), both PDF engines, HTML escaping, and the agent-behavior scenarios' spec anchors.
 
-Live agent-behavior check (costs model calls; needs a host with KHSEO installed):
+**Offline contract tests ≠ live agent tests.** CI runs only the offline suite: it proves every
+behavior scenario is governed by real spec text, but it doesn't call an LLM, so a green badge
+means the contract is intact, not that a model obeyed it. See
+[tests/behavior/README.md](tests/behavior/README.md).
+
+Live agent-behavior check (manual; costs model calls; needs a host with KHSEO installed):
 
 ```bash
 python tests/behavior/run_live.py --cmd "claude -p"
@@ -226,6 +232,13 @@ python tests/behavior/run_live.py --cmd "claude -p"
 
 > Think broadly, act precisely, change minimally, verify honestly, ask before consequential
 > actions, recover when possible, and always keep the user in control.
+
+## Versions, releases & security
+
+- Versions: [VERSION](VERSION) (package), plus spec, schema and probe versions shown in every
+  probe output and report. Policy: [RELEASING.md](RELEASING.md). History: [CHANGELOG.md](CHANGELOG.md).
+- Security: [SECURITY.md](SECURITY.md). CI runs the offline tests, CodeQL, dependency review
+  and OpenSSF Scorecard, with every action pinned to a commit SHA.
 
 ## License
 

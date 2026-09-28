@@ -1,32 +1,79 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Kamrul5242/khseo/schemas/capabilities.schema.json",
+  "x-khseo-schema-version": "1.1",
   "title": "KHSEO Capability Report",
   "description": "What the host actually exposes. Anything UNAVAILABLE makes dependent checks NOT_VERIFIED.",
   "type": "object",
-  "required": ["host", "capabilities"],
+  "required": [
+    "host",
+    "capabilities"
+  ],
   "additionalProperties": false,
   "properties": {
-    "host": {"type": "string"},
-    "checked_at": {"type": "string"},
+    "host": {
+      "type": "string"
+    },
+    "checked_at": {
+      "type": "string"
+    },
     "capabilities": {
       "type": "object",
-      "required": ["web_fetch", "browser_render", "terminal", "filesystem_read", "write_access", "git", "search", "deployment"],
+      "required": [
+        "web_fetch",
+        "browser_render",
+        "terminal",
+        "filesystem_read",
+        "write_access",
+        "git",
+        "search",
+        "deployment"
+      ],
       "additionalProperties": false,
       "properties": {
-        "web_fetch": {"$ref": "#/$defs/state"},
-        "browser_render": {"$ref": "#/$defs/state"},
-        "terminal": {"$ref": "#/$defs/state"},
-        "filesystem_read": {"$ref": "#/$defs/state"},
-        "write_access": {"enum": ["AVAILABLE", "READ_ONLY", "UNAVAILABLE"]},
-        "git": {"$ref": "#/$defs/state"},
-        "search": {"$ref": "#/$defs/state"},
-        "deployment": {"$ref": "#/$defs/state"}
+        "web_fetch": {
+          "$ref": "#/$defs/state"
+        },
+        "browser_render": {
+          "$ref": "#/$defs/state"
+        },
+        "terminal": {
+          "$ref": "#/$defs/state"
+        },
+        "filesystem_read": {
+          "$ref": "#/$defs/state"
+        },
+        "write_access": {
+          "enum": [
+            "AVAILABLE",
+            "READ_ONLY",
+            "UNAVAILABLE"
+          ]
+        },
+        "git": {
+          "$ref": "#/$defs/state"
+        },
+        "search": {
+          "$ref": "#/$defs/state"
+        },
+        "deployment": {
+          "$ref": "#/$defs/state"
+        }
       }
     },
-    "consequences": {"type": "array", "items": {"type": "string"}}
+    "consequences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
   },
   "$defs": {
-    "state": {"enum": ["AVAILABLE", "UNAVAILABLE"]}
+    "state": {
+      "enum": [
+        "AVAILABLE",
+        "UNAVAILABLE"
+      ]
+    }
   }
 }

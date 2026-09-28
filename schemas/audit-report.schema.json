@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Kamrul5242/khseo/schemas/audit-report.schema.json",
+  "x-khseo-schema-version": "1.1",
   "title": "KHSEO Audit Report",
   "type": "object",
   "required": [
@@ -217,6 +218,25 @@
             "type": "string",
             "description": "goal, e.g. 'top 3' (a target, not a guarantee)"
           }
+        }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "description": "versions that produced this audit (scripts/khseo_version.py)",
+      "additionalProperties": false,
+      "properties": {
+        "khseo": {
+          "type": "string"
+        },
+        "spec": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "probe": {
+          "type": "string"
         }
       }
     }

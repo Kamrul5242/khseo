@@ -1,5 +1,30 @@
 # Changelog
 
+Newest first. Format and version rules: [RELEASING.md](RELEASING.md).
+
+## 1.3.1 — 2026-09-28   (spec 1.3, schema 1.1)
+
+Open-source hardening from an external review. No change to SEO logic or governance semantics.
+
+### Security
+- CI: all GitHub Actions pinned to full commit SHAs (resolved from the upstream tags), with a
+  test that fails on any unpinned `uses:`. Dependabot keeps the pins current.
+- CodeQL code scanning (`security-extended`, Python + GitHub Actions) on push, PR and weekly.
+- Dependency review on pull requests; weekly OpenSSF Scorecard.
+- `persist-credentials: false` on every checkout; least-privilege permissions per job.
+- `SECURITY.md` with the reporting process and scope.
+
+### Added
+- Canonical `VERSION` file and `scripts/khseo_version.py` (KHSEO, spec, schema versions); every
+  schema carries `x-khseo-schema-version`. Probe output, audit JSON (`versions`), PDF reports
+  and `KHSEO status` show them. Consistency tests tie VERSION, CHANGELOG, report engine and
+  schemas together.
+- `RELEASING.md`: semantic versioning that treats loosened governance as a breaking change.
+- `tests/behavior/README.md`: offline contract tests vs live agent-behavior tests.
+
+### Changed
+- Probe component 1.2.1 (adds the `VERSIONS` line). CI job renamed "offline contract tests".
+
 ## 1.3.0 — 2026-09-28
 
 ### Added

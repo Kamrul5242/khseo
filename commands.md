@@ -152,6 +152,7 @@ No files modified. Run "KHSEO fix" to apply (R3 items will still ask for approva
 ### `KHSEO status`
 ```text
 KHSEO STATUS
+Versions:    KHSEO 1.3.1 · spec 1.3 · schema 1.1 · probe 1.2.1   (VERSION + scripts/khseo_version.py)
 Task:        SEO optimization of ./shop-app
 Mode:        Vibe Coder (B)
 Priority:    P1        Risk: R2

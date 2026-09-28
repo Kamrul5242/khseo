@@ -27,8 +27,14 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-VERSION = "1.2.0"
-UA = "Mozilla/5.0 (compatible; KHSEO-probe/1.2; +https://github.com/Kamrul5242/khseo)"
+VERSION = "1.2.1"  # probe component version; package versions live in khseo_version.py
+
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import khseo_version as _kv
+except ImportError:  # probe copied on its own
+    _kv = None
+UA = "Mozilla/5.0 (compatible; KHSEO-probe/1.2.1; +https://github.com/Kamrul5242/khseo)"
 TIMEOUT = 20
 MAX_BYTES = 5_000_000        # max bytes read from the wire
 MAX_DECODED = 10_000_000     # max bytes after decompression (gzip-bomb guard)
@@ -762,6 +768,7 @@ def run(target: str, base: str | None = None, network: bool = True, rendered: st
            "server": fetch_res["headers"].get("server"),
            "content_type": fetch_res["headers"].get("content-type")},
         "scope": "single page probe (not a site crawl)",
+        "versions": _kv.versions(VERSION) if _kv else {"probe": VERSION},
         "crawler_registry": REGISTRY_VERSION,
         "challenge": challenge[0],
         "page": page, "rendered_page": rendered_page, "robots": robots, "sitemap": sitemap,
@@ -810,6 +817,7 @@ def to_audit(r: dict) -> dict:
         "target": target,
         "site_name": urlparse(target).hostname or target,
         "prepared_by": f"KHSEO seo_probe v{VERSION}",
+        "versions": r.get("versions") or {"probe": VERSION},
         "scope": {"depth": "quick", "urls_inspected": urls,
                   "note": "Single-page probe: raw HTML" + (" + supplied rendered DOM" if r.get("rendered_page") else "")
                           + ", robots.txt and sitemap. Not a site crawl."},
@@ -828,6 +836,8 @@ def render_text(r: dict) -> str:
     L = [f"KHSEO PROBE v{r['version']} — {r['target']}", "=" * 60,
          "SCOPE: SINGLE PAGE PROBE — this is not a full-site crawl" +
          (" | raw HTML + rendered DOM" if r.get("rendered_page") else " | raw HTML only (no JavaScript)")]
+    if _kv and r.get("versions"):
+        L.append("VERSIONS: " + _kv.banner(r["versions"]))
     f = r["fetch"]
     if f:
         L.append(f"Status: {f['status']}  Final URL: {f['final_url']}  Server: {f.get('server')}")

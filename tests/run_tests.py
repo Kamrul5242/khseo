@@ -27,7 +27,8 @@ class PackageStructure(unittest.TestCase):
         "schemas/audit-report.schema.json", "scripts/seo_probe.py",
         "schemas/approval.schema.json", "schemas/change-set.schema.json", "schemas/validation.schema.json",
         "schemas/capabilities.schema.json", "scripts/validate_json.py", "scripts/capture_rendered.py",
-        "config/ai-crawlers.json", "scripts/audit_report.py", "scripts/meta_tags.py", "scripts/clean_text.py",
+        "config/ai-crawlers.json", "scripts/audit_report.py", "scripts/meta_tags.py", "scripts/clean_text.py", "VERSION", "scripts/khseo_version.py",
+        "SECURITY.md", ".github/dependabot.yml",
         "workflows/keywords.md", "workflows/competitors.md", "workflows/ranking.md", "workflows/offpage.md",
         "templates/keyword-report.md", "templates/competitor-analysis.md", "templates/ranking-plan.md",
         "templates/offpage-plan.md",
@@ -76,6 +77,42 @@ class PackageStructure(unittest.TestCase):
                 if not (md.parent / target).resolve().exists():
                     broken.append(f"{md.relative_to(ROOT)} -> {target}")
         self.assertEqual(broken, [], "broken links:\n" + "\n".join(broken))
+
+    def test_versions_are_consistent(self):
+        import khseo_version as kv
+        ver = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertRegex(ver, r"^\d+\.\d+\.\d+$", "VERSION must be semver")
+        self.assertEqual(kv.KHSEO_VERSION, ver)
+        top = re.search(r"(?m)^## (\d+\.\d+\.\d+)\b", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
+        self.assertEqual(top.group(1), ver, "CHANGELOG's newest entry must match VERSION")
+        self.assertRegex(kv.SPEC_VERSION, r"^\d+\.\d+$")
+        self.assertRegex(kv.SCHEMA_VERSION, r"^\d+\.\d+$")
+        for f in (ROOT / "schemas").glob("*.schema.json"):
+            self.assertEqual(json.loads(f.read_text(encoding="utf-8")).get("x-khseo-schema-version"),
+                             kv.SCHEMA_VERSION, f.name)
+        self.assertEqual(audit_report.VERSION, ver)
+        r = seo_probe.run(str(FIX / "good_page.html"), base="https://a.test/", network=False)
+        self.assertEqual(r["versions"], kv.versions(seo_probe.VERSION))
+        self.assertIn("VERSIONS: KHSEO " + ver, seo_probe.render_text(r))
+        self.assertEqual(seo_probe.to_audit(r)["versions"]["khseo"], ver)
+
+    def test_workflows_pin_actions_and_limit_permissions(self):
+        """Supply-chain hardening: every action pinned to a 40-hex commit SHA (tags are mutable),
+        and every workflow declares top-level permissions."""
+        wf_dir = ROOT / ".github" / "workflows"
+        files = sorted(wf_dir.glob("*.yml"))
+        self.assertGreaterEqual(len(files), 4)
+        unpinned = []
+        for f in files:
+            text = f.read_text(encoding="utf-8")
+            self.assertRegex(text, r"(?m)^permissions:", f"{f.name} lacks top-level permissions")
+            for m in re.finditer(r"(?m)^\s*-?\s*uses:\s*(\S+)", text):
+                ref = m.group(1)
+                if ref.startswith("./"):
+                    continue
+                if not re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", ref):
+                    unpinned.append(f"{f.name}: {ref}")
+        self.assertEqual(unpinned, [], "actions must be pinned to full commit SHAs")
 
     def test_no_control_characters_in_repo_text(self):
         """Mangled escapes (\\b -> backspace) hit 3 files once; keep every text file clean."""

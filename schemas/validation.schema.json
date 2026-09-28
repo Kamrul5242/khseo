@@ -1,32 +1,70 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Kamrul5242/khseo/schemas/validation.schema.json",
+  "x-khseo-schema-version": "1.1",
   "title": "KHSEO Validation Report",
   "description": "Results of checks actually run. PASSED requires method + evidence; anything that could not run is NOT_VERIFIED (enforced by scripts/validate_json.py honesty lint).",
   "type": "object",
-  "required": ["checks"],
+  "required": [
+    "checks"
+  ],
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string"},
-    "change_set_id": {"type": "string"},
+    "id": {
+      "type": "string"
+    },
+    "change_set_id": {
+      "type": "string"
+    },
     "checks": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["name", "status"],
+        "required": [
+          "name",
+          "status"
+        ],
         "additionalProperties": false,
         "properties": {
-          "name": {"type": "string"},
-          "status": {"enum": ["PASSED", "FAILED", "NOT_VERIFIED"]},
-          "method": {"type": "string", "description": "the exact command/tool used"},
-          "evidence": {"type": "string", "description": "observed output that supports the status"},
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "NOT_VERIFIED"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "description": "the exact command/tool used"
+          },
+          "evidence": {
+            "type": "string",
+            "description": "observed output that supports the status"
+          },
           "requires": {
             "type": "array",
             "description": "capabilities this check needs (names from capabilities.schema.json)",
-            "items": {"enum": ["web_fetch", "browser_render", "terminal", "filesystem_read", "write_access", "git", "search", "deployment"]}
+            "items": {
+              "enum": [
+                "web_fetch",
+                "browser_render",
+                "terminal",
+                "filesystem_read",
+                "write_access",
+                "git",
+                "search",
+                "deployment"
+              ]
+            }
           },
-          "reason": {"type": "string", "description": "why NOT_VERIFIED / what the user can run"}
+          "reason": {
+            "type": "string",
+            "description": "why NOT_VERIFIED / what the user can run"
+          }
         }
       }
     }

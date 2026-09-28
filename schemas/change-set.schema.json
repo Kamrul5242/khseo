@@ -1,44 +1,122 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Kamrul5242/khseo/schemas/change-set.schema.json",
+  "x-khseo-schema-version": "1.1",
   "title": "KHSEO Change Set",
   "description": "What KHSEO changed in one operation. Rollback reverts exactly this set, never unrelated user work.",
   "type": "object",
-  "required": ["id", "task", "status", "files", "rollback"],
+  "required": [
+    "id",
+    "task",
+    "status",
+    "files",
+    "rollback"
+  ],
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string", "pattern": "^CS-[A-Za-z0-9-]+$"},
-    "task": {"type": "string"},
-    "approval_ids": {"type": "array", "items": {"type": "string"}},
-    "backup_id": {"type": "string"},
-    "status": {"enum": ["COMPLETED", "PARTIALLY_COMPLETED", "BLOCKED", "FAILED", "ROLLED_BACK"]},
+    "id": {
+      "type": "string",
+      "pattern": "^CS-[A-Za-z0-9-]+$"
+    },
+    "task": {
+      "type": "string"
+    },
+    "approval_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "backup_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIALLY_COMPLETED",
+        "BLOCKED",
+        "FAILED",
+        "ROLLED_BACK"
+      ]
+    },
     "files": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["path", "action", "risk"],
+        "required": [
+          "path",
+          "action",
+          "risk"
+        ],
         "additionalProperties": false,
         "properties": {
-          "path": {"type": "string"},
-          "action": {"enum": ["created", "modified", "deleted", "renamed"]},
-          "risk": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
-          "summary": {"type": "string"}
+          "path": {
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "created",
+              "modified",
+              "deleted",
+              "renamed"
+            ]
+          },
+          "risk": {
+            "enum": [
+              "R0",
+              "R1",
+              "R2",
+              "R3",
+              "R4"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          }
         }
       }
     },
-    "not_applied": {"type": "array", "items": {"type": "string"}},
-    "validation_id": {"type": "string"},
-    "rollback": {
-      "type": "object",
-      "required": ["available"],
-      "additionalProperties": false,
-      "properties": {
-        "available": {"enum": ["FULL", "PARTIAL", "LIMITED", "NONE"]},
-        "method": {"type": "string"},
-        "performed": {"type": "boolean"},
-        "preserved_user_changes": {"type": "array", "items": {"type": "string"}}
+    "not_applied": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
-    "deployed": {"const": false, "description": "Deployment is a separate gate; a change set never implies deployment."}
+    "validation_id": {
+      "type": "string"
+    },
+    "rollback": {
+      "type": "object",
+      "required": [
+        "available"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "enum": [
+            "FULL",
+            "PARTIAL",
+            "LIMITED",
+            "NONE"
+          ]
+        },
+        "method": {
+          "type": "string"
+        },
+        "performed": {
+          "type": "boolean"
+        },
+        "preserved_user_changes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "deployed": {
+      "const": false,
+      "description": "Deployment is a separate gate; a change set never implies deployment."
+    }
   }
 }
