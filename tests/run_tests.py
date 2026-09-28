@@ -123,6 +123,79 @@ class ProbeOnFixtures(unittest.TestCase):
         self.assertEqual(f[0]["priority"], "P0")
         self.assertIn("Bot-challenge", f[0]["message"])
 
+    # ---- regressions from the v1.1.0 security/bug audit -------------------------------------
+    def test_svg_title_is_not_a_page_title(self):
+        html = "<html><head><title>Real</title></head><body><svg><title>icon</title></svg></body></html>"
+        p = seo_probe.analyze_html(html, "https://a.test/")
+        self.assertEqual((p["title"], p["title_count"]), ("Real", 1))
+
+    def test_robots_longest_match_allow_wins(self):
+        g, _ = seo_probe.parse_robots("User-agent: *\nDisallow: /\nAllow: /public/\n")
+        self.assertTrue(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/public/x"))
+        self.assertFalse(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/private"))
+
+    def test_robots_agent_token_is_exact(self):
+        g, _ = seo_probe.parse_robots("User-agent: Google\nDisallow: /\n")
+        self.assertTrue(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/"))
+        g, _ = seo_probe.parse_robots("User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nDisallow: /\n")
+        self.assertFalse(seo_probe.robots_allowed(g, "GPTBot", "https://a.test/"))
+        self.assertTrue(seo_probe.robots_allowed(g, "ClaudeBot", "https://a.test/"))
+
+    def test_robots_wildcards_and_empty_disallow(self):
+        g, sm = seo_probe.parse_robots("User-agent: *\nDisallow: /*.pdf$\nDisallow:\nSitemap: https://a.test/s.xml\n")
+        self.assertFalse(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/doc.pdf"))
+        self.assertTrue(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/doc.pdf?x=1"))
+        self.assertTrue(seo_probe.robots_allowed(g, "Googlebot", "https://a.test/page"))
+        self.assertEqual(sm, ["https://a.test/s.xml"])
+
+    def test_recaptcha_widget_is_not_p0(self):
+        html = ('<html><head><title>Contact us</title><meta name="viewport" content="x"></head>'
+                '<body><h1>Contact</h1><p>Send us a message.</p><div class="g-recaptcha"></div></body></html>')
+        fr = {"error": None, "status": 200, "redirects": [], "body": html, "headers": {},
+              "final_url": "https://a.test/contact"}
+        f = seo_probe.build_findings(fr, seo_probe.analyze_html(html, fr["final_url"]), None, None)
+        self.assertFalse([x for x in f if x["priority"] == "P0"])
+
+    def test_ssrf_guards(self):
+        for bad in ["http://169.254.169.254/latest/", "http://127.0.0.1/", "http://localhost/",
+                    "http://[::1]/", "ftp://example.com/", "file:///etc/passwd"]:
+            with self.assertRaises(seo_probe.UnsafeURL, msg=bad):
+                seo_probe.check_url(bad, allow_private=False)
+        seo_probe.check_url("http://127.0.0.1/", allow_private=True)  # explicit local target is fine
+        with self.assertRaises(seo_probe.UnsafeURL):
+            seo_probe.check_url("ftp://127.0.0.1/", allow_private=True)  # scheme never allowed
+
+    def test_sitemap_on_foreign_host_not_fetched(self):
+        r = seo_probe.check_sitemap("https://shop.example/", ["http://169.254.169.254/x", "https://cdn.other.example/s.xml"])
+        self.assertTrue(all(c.get("skipped") for c in r["checked"]))
+        self.assertTrue(seo_probe._same_site("https://blog.shop.example/s.xml", "https://www.shop.example/"))
+
+    def test_control_chars_stripped(self):
+        import tempfile, os
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as fh:
+            fh.write("<title>A\x1b[2J\x9bB\x07</title>")
+        try:
+            title = seo_probe.run(fh.name, network=False)["page"]["title"]
+        finally:
+            os.unlink(fh.name)
+        self.assertFalse(any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in title), repr(title))
+
+    def test_bad_charset_and_decompression_cap(self):
+        import gzip
+        self.assertEqual(seo_probe._charset("text/html; charset=utf8mb4-bogus"), "utf-8")
+        self.assertEqual(seo_probe._charset('text/html; charset="ISO-8859-1"'), "iso8859-1")
+        bomb = gzip.compress(b" " * (seo_probe.MAX_DECODED * 3))
+        data, cut = seo_probe._decompress(bomb, "gzip")
+        self.assertEqual((len(data), cut), (seo_probe.MAX_DECODED, True))
+
+    def test_cli_missing_file_and_uppercase_scheme(self):
+        import subprocess
+        o = subprocess.run([sys.executable, str(ROOT / "scripts" / "seo_probe.py"), "no-such-file.html"],
+                           capture_output=True, text=True)
+        self.assertEqual(o.returncode, 2)
+        self.assertNotIn("Traceback", o.stderr)
+        self.assertTrue(seo_probe.urlparse("HTTPS://x.test/").scheme.lower() == "https")
+
     def test_every_finding_has_label(self):
         r, _ = self._findings("bad_page.html")
         for f in r["findings"]:

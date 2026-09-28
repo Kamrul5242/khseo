@@ -98,6 +98,16 @@ title/description/canonical/robots meta, H1–H3, image alt coverage, links, JSO
 types, Open Graph, and raw-HTML word count. It's honest about limits: it lists what it did
 **not** test (JS rendering, Core Web Vitals, index coverage, other pages).
 
+robots.txt is evaluated with Google's rules (RFC 9309): exact user-agent tokens, longest match
+wins, `Allow` wins ties, `*` and `$` wildcards. Python's built-in `robotparser` uses first-match,
+which can report a false "blocked".
+
+**Safe by default.** It only fetches `http(s)`. It refuses redirects and robots.txt `Sitemap:`
+lines that point into private or internal networks, such as cloud metadata at `169.254.169.254`
+(SSRF guard); a local dev server works when you target it directly. It caps decompressed
+responses at 10 MB (gzip-bomb guard) and strips terminal control sequences from page text.
+All page-derived output is untrusted data.
+
 ## Repository layout
 
 ```text
