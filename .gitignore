@@ -1,0 +1,5 @@
+.claude-flow/
+.claude/
+__pycache__/
+*.pyc
+.fablize/
