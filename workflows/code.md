@@ -4,8 +4,12 @@
 to fix/implement SEO in code. Always read [rules/governance.md](../rules/governance.md) too.
 
 ```
-DETECT → AUDIT → PLAN → (CONFIRM if R2+) → IMPLEMENT → TEST → VERIFY → REPORT
+CAPABILITY CHECK → DETECT → AUDIT → PLAN → GATE → IMPLEMENT → TEST → VERIFY → REPORT
 ```
+
+**GATE** applies the canonical risk rule in [governance.md §0](../rules/governance.md):
+R0–R1 proceed, R2 is shown and waits for authorization, R3–R4 need explicit confirmation plus
+a recovery point.
 
 ## 1. Detect (never assume the framework)
 
@@ -51,8 +55,9 @@ Search for the concrete things, not vibes:
 
 ## 3. Plan
 
-Minimal list of changes, each tagged `P? / R?`. Group R3/R4 into one approval request. Prefer
-extending the existing SEO system over introducing a new library.
+Minimal list of changes, each tagged `P? / R?`. Show R2 items as `PROPOSED CHANGE` and group
+R3/R4 into one approval request. Then apply only R0–R1 plus whatever the user authorized.
+Prefer extending the existing SEO system over introducing a new library.
 
 ## 4. Implement
 

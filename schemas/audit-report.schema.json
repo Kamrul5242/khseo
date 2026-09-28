@@ -3,32 +3,96 @@
   "$id": "https://github.com/Kamrul5242/khseo/schemas/audit-report.schema.json",
   "title": "KHSEO Audit Report",
   "type": "object",
-  "required": ["target", "scope", "overall_status", "summary", "findings", "not_tested"],
+  "required": [
+    "target",
+    "scope",
+    "overall_status",
+    "summary",
+    "findings",
+    "not_tested"
+  ],
   "properties": {
-    "target": {"type": "string"},
-    "date": {"type": "string", "format": "date"},
+    "target": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
     "scope": {
       "type": "object",
-      "required": ["depth", "urls_inspected"],
+      "required": [
+        "depth",
+        "urls_inspected"
+      ],
       "properties": {
-        "depth": {"enum": ["quick", "standard", "deep", "full"]},
-        "urls_inspected": {"type": "array", "items": {"type": "string"}}
+        "depth": {
+          "enum": [
+            "quick",
+            "standard",
+            "deep",
+            "full"
+          ]
+        },
+        "urls_inspected": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
       }
     },
-    "overall_status": {"enum": ["critical", "needs_work", "healthy"]},
-    "summary": {"type": "string"},
-    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "overall_status": {
+      "enum": [
+        "critical",
+        "needs_work",
+        "healthy"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
     "action_plan": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["step", "action", "priority"],
+        "required": [
+          "step",
+          "action",
+          "priority"
+        ],
         "properties": {
-          "step": {"type": "integer", "minimum": 1},
-          "action": {"type": "string"},
-          "priority": {"$ref": "#/$defs/priority"},
-          "risk": {"$ref": "#/$defs/risk"},
-          "owner": {"enum": ["khseo", "user", "developer", "unknown"]}
+          "step": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "action": {
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/$defs/priority"
+          },
+          "risk": {
+            "$ref": "#/$defs/risk"
+          },
+          "owner": {
+            "enum": [
+              "khseo",
+              "user",
+              "developer",
+              "platform",
+              "unknown"
+            ]
+          }
         }
       }
     },
@@ -36,36 +100,155 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["area", "status"],
+        "required": [
+          "area",
+          "status"
+        ],
         "properties": {
-          "area": {"type": "string"},
-          "status": {"type": "string"},
-          "evidence": {"type": "string"}
+          "area": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          }
         }
       }
     },
-    "not_tested": {"type": "array", "items": {"type": "string"}}
+    "not_tested": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "site_name": {
+      "type": "string"
+    },
+    "prepared_by": {
+      "type": "string",
+      "description": "e.g. 'KHSEO v1.2 via Claude Code'"
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "host capabilities used for this audit (see capabilities.schema.json)",
+      "additionalProperties": {
+        "enum": [
+          "AVAILABLE",
+          "UNAVAILABLE",
+          "READ_ONLY"
+        ]
+      }
+    },
+    "what_khseo_can_do": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "uncertain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
   },
   "$defs": {
-    "priority": {"enum": ["P0", "P1", "P2", "P3"]},
-    "risk": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
-    "label": {"enum": ["VERIFIED", "OBSERVED", "INFERRED", "RECOMMENDED", "ASSUMED", "UNKNOWN", "NOT TESTED"]},
+    "priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    "risk": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ]
+    },
+    "label": {
+      "enum": [
+        "VERIFIED",
+        "OBSERVED",
+        "INFERRED",
+        "RECOMMENDED",
+        "ASSUMED",
+        "UNKNOWN",
+        "NOT TESTED"
+      ]
+    },
     "finding": {
       "type": "object",
-      "required": ["id", "layer", "priority", "label", "message"],
+      "required": [
+        "id",
+        "layer",
+        "priority",
+        "label",
+        "message"
+      ],
       "properties": {
-        "id": {"type": "string"},
-        "layer": {
-          "enum": ["crawlability", "indexability", "technical", "on_page", "entity", "semantic", "aeo", "geo",
-                   "llm", "eeat", "information_gain", "structured_data", "internal_links", "reputation", "ai_readiness"]
+        "id": {
+          "type": "string"
         },
-        "priority": {"$ref": "#/$defs/priority"},
-        "label": {"$ref": "#/$defs/label"},
-        "message": {"type": "string"},
-        "evidence": {"type": "string"},
-        "url": {"type": "string"},
-        "fix": {"type": "string"},
-        "fix_risk": {"$ref": "#/$defs/risk"}
+        "layer": {
+          "enum": [
+            "crawlability",
+            "indexability",
+            "technical",
+            "on_page",
+            "entity",
+            "semantic",
+            "aeo",
+            "geo",
+            "llm",
+            "eeat",
+            "information_gain",
+            "structured_data",
+            "internal_links",
+            "reputation",
+            "ai_readiness"
+          ]
+        },
+        "priority": {
+          "$ref": "#/$defs/priority"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "message": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "fix": {
+          "type": "string"
+        },
+        "fix_risk": {
+          "$ref": "#/$defs/risk"
+        },
+        "section": {
+          "type": "string",
+          "description": "optional display group"
+        },
+        "owner": {
+          "enum": [
+            "khseo",
+            "user",
+            "developer",
+            "platform",
+            "unknown"
+          ]
+        }
       }
     }
   }

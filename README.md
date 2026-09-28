@@ -8,6 +8,11 @@ web for both humans and search/AI systems. You type `KHSEO` and say what you wan
 language. It works out whether you need an auditor, a coding agent, a writer, or a social media
 editor.
 
+**What it is:** a model-agnostic, host-adaptable AI skill (rules, workflows, output contracts,
+governance) plus a security-conscious single-page crawler-view probe and a PDF audit reporter.
+**What it isn't:** a full-site crawler, rank tracker or backlink tool. It doesn't replace
+Screaming Frog, Ahrefs or Search Console, and it says so in every report.
+
 ```text
 KHSEO audit my website https://example.com
 KHSEO fix the SEO problems in this Next.js project
@@ -68,6 +73,20 @@ Full behavior is in [commands.md](commands.md).
   ranking/AI-citation guarantees.
 - **Proportional** — a quick question gets a quick answer; a full audit gets a full report.
 
+## Core vs host
+
+```text
+KHSEO CORE  = intelligence: rules, workflows, risk + approval model, output contracts, schemas
+HOST        = the AI + its tools: model, filesystem, terminal, browser, git, search, deploy
+ADAPTER     = how a given host loads the core (adapters/)
+```
+
+The core behaves the same everywhere. What it can *do* depends on the host. KHSEO starts every
+tool-dependent task with a **capability handshake** and reports anything it can't do as
+`NOT TESTED`. Rollback, backups and change journals are **protocols**: in Claude Code with git they
+are real, while in a chat-only host KHSEO can only give you the change and say it can't roll back.
+It's model-agnostic, not "identical on every AI".
+
 ## Install
 
 **Claude Code**
@@ -104,9 +123,31 @@ which can report a false "blocked".
 
 **Safe by default.** It only fetches `http(s)`. It refuses redirects and robots.txt `Sitemap:`
 lines that point into private or internal networks, such as cloud metadata at `169.254.169.254`
-(SSRF guard); a local dev server works when you target it directly. It caps decompressed
+(SSRF guard). The IP it validates is the IP it connects to (DNS-pinned, so DNS rebinding can't swap addresses between check and connect), and proxy env vars are ignored for the same reason. A local dev server works when you target it directly. It caps decompressed
 responses at 10 MB (gzip-bomb guard) and strips terminal control sequences from page text.
 All page-derived output is untrusted data.
+
+## PDF audit reports
+
+```bash
+python scripts/seo_probe.py https://example.com/ --audit-json > audit.json   # or write a full audit JSON
+python scripts/validate_json.py audit-report audit.json                     # schema + honesty lint
+python scripts/audit_report.py audit.json -o example-seo-audit.pdf          # PDF + HTML
+```
+
+The report includes a cover with status, the executive summary, priority counts, findings (each
+with priority, evidence label, layer, evidence, fix, fix risk and owner), the action plan,
+AI-search readiness, what KHSEO can do next, uncertainties, scope and host capabilities, what
+was **not tested**, and a no-guarantees disclaimer. It uses a local Chrome/Edge/Chromium when
+available and a built-in stdlib PDF writer otherwise (`--engine builtin`). Dishonest input is
+refused: a `VERIFIED` claim about something listed as not tested, or `PASSED` without evidence.
+A sample report comes from [examples/json/sample-audit.json](examples/json/sample-audit.json).
+
+## Governance as data
+
+[schemas/](schemas/) holds machine-readable contracts for `audit-report`, `approval`,
+`change-set`, `validation` and `capabilities`, with examples in [examples/json/](examples/json/).
+`scripts/validate_json.py` checks them with no dependencies.
 
 ## Repository layout
 
@@ -121,11 +162,18 @@ khseo/
 ├── workflows/               audit · code · content · social · general-user
 ├── templates/               audit report, writing package, rewrite, social, code report,
 │                            approval/assumption formats, JSON-LD snippets
-├── schemas/                 audit-report.schema.json (machine-readable audits)
-├── scripts/seo_probe.py     single-page crawler-view probe
+├── schemas/                 audit-report, approval, change-set, validation, capabilities
+├── scripts/
+│   ├── seo_probe.py         single-page crawler-view probe (raw vs rendered, --audit-json)
+│   ├── capture_rendered.py  one-shot receiver for a rendered DOM from a real browser
+│   ├── audit_report.py      audit JSON -> HTML + PDF report
+│   └── validate_json.py     schema validator + honesty lint
+├── config/ai-crawlers.json  crawler registry (update without code changes)
 ├── adapters/                ChatGPT / Gemini / Cursor / Copilot / AGENTS.md / generic prompt
 ├── examples/                request → behavior walkthroughs
-└── tests/run_tests.py       package + probe self-tests (stdlib unittest)
+├── tests/run_tests.py       offline test suite (stdlib unittest)
+├── tests/behavior/          agent-behavior scenarios + live runner
+└── CHANGELOG.md
 ```
 
 ## Test
@@ -134,9 +182,15 @@ khseo/
 python tests/run_tests.py
 ```
 
-Checks the skill structure and frontmatter, that every relative link resolves, that all JSON and
-JSON-LD snippets parse, and runs the probe against fixtures — including regressions for
-gzip-encoded responses and JS challenge shells.
+48 offline tests cover the skill structure and links, every JSON contract and the honesty
+lint, the probe (including RFC 9309 robots, SSRF/DNS-pinning, gzip-bomb, challenge pages and
+raw-vs-rendered), both PDF engines, HTML escaping, and the agent-behavior scenarios' spec anchors.
+
+Live agent-behavior check (costs model calls; needs a host with KHSEO installed):
+
+```bash
+python tests/behavior/run_live.py --cmd "claude -p"
+```
 
 ## Philosophy
 

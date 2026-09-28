@@ -87,9 +87,17 @@ UNDERSTAND → CHECK CAPABILITIES → INSPECT → RESOLVE CONFLICTS → PRIORITY
 → ROLLBACK (if failed) → REPORT
 ```
 
-- **Check capabilities first.** Know what this host actually gives you (files, terminal, web
-  fetch, browser, git, write access, deploy access). Missing capability → degrade gracefully and
-  mark the affected checks `NOT TESTED`. Never simulate a tool you don't have.
+- **Capability handshake (mandatory before any tool-dependent task).** Decide from what this host
+  *actually* exposes, not what it might have:
+  `Web fetch · Browser/JS render · Terminal/code exec · Filesystem read · Write access · Git ·
+  Search · Deployment` → each `AVAILABLE` or `UNAVAILABLE`. Show the block (template:
+  [templates/approval-request.md](templates/approval-request.md)) on the first tool-dependent
+  request or when the user asks `KHSEO status`. Every check that needs an unavailable capability
+  is reported `NOT TESTED`, never passed, and no action needing it is ever claimed.
+- **Core vs host.** KHSEO is the *rules and workflows*. The host (Claude Code, ChatGPT, Cursor, an
+  API agent…) provides the tools. Rollback, backups, deploy gates and change journals are
+  protocols KHSEO enforces *through* the host's git/filesystem. Where the host has none, KHSEO
+  can only hand the user the change and say it can't roll back.
 - **Inputs priority:** explicit user instruction → user-provided facts → provided files/code →
   verified external info → general knowledge → inference. Conflicting user facts → surface the
   conflict, don't silently pick.
@@ -101,15 +109,20 @@ UNDERSTAND → CHECK CAPABILITIES → INSPECT → RESOLVE CONFLICTS → PRIORITY
 
 - **Priority** — P0 blocks crawling/indexing/rendering/security/prod · P1 major visibility,
   conversion or AI-understanding loss · P2 meaningful improvement · P3 enhancement.
-- **Risk** — R0 read-only · R1 small reversible local change · R2 multi-page/template/config ·
-  R3 redirects, robots, URL structure, migrations, auth · R4 destructive/irreversible/prod-wide.
+- **Risk** is defined once in [rules/governance.md §0](rules/governance.md). In short: R0 AUTO
+  (read-only) · R1 AUTO + REPORT (small, reversible, in scope) · R2 REVIEW (show the change,
+  **wait for authorization**; generic "fix everything" doesn't count) · R3 CONFIRM (+ recovery
+  point) · R4 CONFIRM + RECOVERY GATE (one-time). Examples: R2 = templates, routing, SEO config;
+  R3 = redirects, robots, URL structure, auth; R4 = destructive, irreversible, production-wide.
 
 | | R0 | R1 | R2 | R3 | R4 |
 |---|---|---|---|---|---|
-| P0 | analyze now | fast fix | review | explicit approval | approval + recovery |
-| P1 | high priority | usually auto-fix | review | approval | approval + recovery |
-| P2 | normal | auto-fix | review if broad | approval | approval |
-| P3 | backlog | auto-fix | defer/review | defer | defer |
+| P0 | analyze now | fix now | propose now, wait | confirm + recovery point | confirm + verified recovery |
+| P1 | high priority | fix | propose, wait | confirm + recovery point | confirm + verified recovery |
+| P2 | normal | fix | propose, wait | confirm + recovery point | confirm + verified recovery |
+| P3 | backlog | fix | propose or defer | defer (or confirm) | defer (or confirm) |
+
+Priority changes *when* KHSEO acts. Risk decides *how much permission* the change needs.
 
 Approval requests, backup levels, rollback, approval expiry, scope lock, conflict resolution,
 tool boundaries: [rules/governance.md](rules/governance.md). Silence is never approval.
@@ -142,7 +155,21 @@ Reputation → AI-search readiness → Verify.** Checklists per layer: [rules/se
   redirect or robots-`Sitemap:` pivot into private/internal networks (a local dev server is
   allowed only when you target it directly), decompression capped at 10 MB, and terminal control
   characters stripped from page text.
-- `tests/run_tests.py` — validates this package (structure, frontmatter, links, schemas, probe).
+  `--rendered FILE` adds a raw-vs-rendered comparison (JS-only titles, canonicals, schema, text).
+  `--audit-json` emits an audit document for the PDF reporter. The output banner always says
+  **SINGLE PAGE PROBE**: never present it as a site crawl.
+- `scripts/capture_rendered.py FILE` — one-shot, loopback-only, token-protected receiver for a
+  rendered DOM when the host has a browser tool. Sites behind bot shields often block headless
+  browsers too, so the host's real browser session is the only way to see the rendered page. If
+  the host browser blocks loopback requests, return a compacted DOM from the page instead.
+- `scripts/audit_report.py audit.json -o report.pdf` — **PDF audit report** (plus HTML). Uses a
+  local Chromium-family browser when available, otherwise a built-in stdlib PDF writer. Refuses
+  input that fails the schema or the honesty lint. All page-derived text is escaped.
+- `scripts/validate_json.py <schema> doc.json` — validates any KHSEO JSON contract (audit,
+  approval, change-set, validation, capabilities) and runs the honesty lint: `PASSED` needs
+  method + evidence, and anything requiring an unavailable capability must be `NOT_VERIFIED`.
+- `tests/run_tests.py` — validates this package (structure, frontmatter, links, schemas, probe,
+  PDF, security regressions).
 - Worked request → behavior examples: [examples/README.md](examples/README.md). Loading KHSEO
   into non-Claude hosts: [adapters/README.md](adapters/README.md).
 
@@ -153,6 +180,7 @@ Pick the template for the mode; include only the sections that are relevant.
 | Deliverable | Template |
 |---|---|
 | Website audit | [templates/audit-report.md](templates/audit-report.md) (machine form: [schemas/audit-report.schema.json](schemas/audit-report.schema.json)) |
+| Audit as PDF (asked for "pdf"/"report"/"to share", or Full depth) | write the audit JSON → `scripts/audit_report.py audit.json -o <site>-seo-audit.pdf` → open the PDF and check it before handing it over |
 | Blog / article | [templates/writing-output.md](templates/writing-output.md) |
 | Rewrite / humanize | [templates/rewrite-output.md](templates/rewrite-output.md) |
 | Social posts | [templates/social-output.md](templates/social-output.md) |

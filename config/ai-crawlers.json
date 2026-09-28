@@ -1,0 +1,20 @@
+{
+  "updated": "2026-09-28",
+  "note": "Crawler product tokens as used in robots.txt User-agent lines. Update this file when vendors add or rename crawlers; no code change needed. Verify tokens against each vendor's official documentation.",
+  "crawlers": [
+    {"token": "Googlebot", "vendor": "Google", "role": "search", "purpose": "Google Search indexing", "renders_js": true},
+    {"token": "Bingbot", "vendor": "Microsoft", "role": "search", "purpose": "Bing Search (also feeds Copilot answers)", "renders_js": true},
+    {"token": "OAI-SearchBot", "vendor": "OpenAI", "role": "ai-search", "purpose": "ChatGPT search results", "renders_js": false},
+    {"token": "ChatGPT-User", "vendor": "OpenAI", "role": "ai-user", "purpose": "fetches pages when a ChatGPT user asks", "renders_js": false},
+    {"token": "GPTBot", "vendor": "OpenAI", "role": "ai-training", "purpose": "model training crawl", "renders_js": false},
+    {"token": "Claude-SearchBot", "vendor": "Anthropic", "role": "ai-search", "purpose": "Claude search results", "renders_js": false},
+    {"token": "Claude-User", "vendor": "Anthropic", "role": "ai-user", "purpose": "fetches pages when a Claude user asks", "renders_js": false},
+    {"token": "ClaudeBot", "vendor": "Anthropic", "role": "ai-training", "purpose": "model training crawl", "renders_js": false},
+    {"token": "PerplexityBot", "vendor": "Perplexity", "role": "ai-search", "purpose": "Perplexity answer index", "renders_js": false},
+    {"token": "Google-Extended", "vendor": "Google", "role": "ai-training", "purpose": "robots.txt control token for Gemini training/grounding use (not a separate crawler)", "renders_js": null},
+    {"token": "Applebot-Extended", "vendor": "Apple", "role": "ai-training", "purpose": "robots.txt control token for Apple AI training (not a separate crawler)", "renders_js": null},
+    {"token": "CCBot", "vendor": "Common Crawl", "role": "ai-training", "purpose": "open web corpus used by many models", "renders_js": false},
+    {"token": "Bytespider", "vendor": "ByteDance", "role": "ai-training", "purpose": "model training crawl", "renders_js": false},
+    {"token": "Meta-ExternalAgent", "vendor": "Meta", "role": "ai-training", "purpose": "model training crawl", "renders_js": false}
+  ]
+}

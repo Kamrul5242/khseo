@@ -51,15 +51,20 @@ information gain, structured data, internal linking, content gaps, AI-search rea
 priority + risk matrix, and recommended actions. It modifies **nothing**, even when fixes are
 trivial. It ends by offering `KHSEO fix`.
 
+Add **"pdf"** (or ask for a shareable report), e.g. `KHSEO audit https://example.com pdf`, and
+KHSEO also delivers the audit as a PDF (plus HTML) via `scripts/audit_report.py`, after
+validating the audit JSON and checking the rendered PDF.
+
 ### `KHSEO fix`
 ```
 AUDIT → PRIORITIZE → RISK ASSESSMENT
-→ SAFE (R0–R1, in scope) → implement automatically
-→ REVIEW (R2) → show PROPOSED CHANGE, apply if clearly within the request, otherwise wait
-→ HIGH-RISK (R3–R4) → one batched APPROVAL REQUEST, then wait
-→ BACKUP/RECOVERY → IMPLEMENT → VALIDATE → CHANGE REPORT
+→ R0–R1 (in scope) → implement automatically, list in the change report
+→ R2 → show PROPOSED CHANGE, wait for the user's authorization
+→ R3–R4 → one batched APPROVAL REQUEST (+ recovery point), then wait
+→ IMPLEMENT the authorized items → VALIDATE → CHANGE REPORT
 ```
-Rules: [rules/governance.md](rules/governance.md).
+Risk levels are defined once, in [rules/governance.md §0](rules/governance.md). A generic
+"fix all SEO issues" authorizes R0–R1 only.
 
 ### `KHSEO write`
 Runs [workflows/content.md](workflows/content.md) (or [workflows/social.md](workflows/social.md)

@@ -16,9 +16,20 @@ traffic". **Minimum input:** one URL or an accessible project.
    - Otherwise fetch HTML, `/robots.txt`, `/sitemap.xml` (and sitemaps listed in robots.txt).
    - A bot-challenge page, 403, or `noindex` on a key page is **P0** — report it first and don't
      bury it under meta-description advice.
-4. **Rendering check.** Compare raw HTML word count / key copy with the rendered page (browser
-   tool if available). Large gap → JS-dependent content (P1, or P0 if the product/article body
-   is missing entirely).
+4. **Rendering check (raw vs rendered).** Most AI crawlers and link-preview bots don't run
+   JavaScript, so compare what the server sends with what a browser shows:
+   - Browser tool available → open the page, then either run
+     `scripts/capture_rendered.py dom.html` and execute the printed snippet in the tab, or, if the
+     host browser blocks loopback requests, return a compacted `document.documentElement.outerHTML`
+     (scripts except JSON-LD, styles and SVG removed) and save it. Then
+     `seo_probe.py URL --rendered dom.html`.
+   - If the probe got a **challenge page**, it reports on-page SEO as `NOT TESTED` rather than
+     describing the shield. Assess on-page SEO from the rendered DOM and label it `[rendered]`.
+   - Headless browsers are often challenged too. Don't treat a headless result as proof of what
+     crawlers get.
+   - No browser → JavaScript rendering is `NOT TESTED`. Say so.
+   - Large gap (titles, canonicals, schema or body text only after JS) → P1, or P0 if the
+     product/article body is missing entirely.
 5. **Walk the layers** in [rules/seo-checklists.md](../rules/seo-checklists.md) 1→13. Record each
    finding with priority (P0–P3), evidence label, and the evidence itself (the line, header, or
    count).
@@ -31,21 +42,11 @@ traffic". **Minimum input:** one URL or an accessible project.
 9. **Deliver** with [templates/audit-report.md](../templates/audit-report.md). Include only
    relevant sections. If the user wants machine-readable output, emit JSON matching
    [schemas/audit-report.schema.json](../schemas/audit-report.schema.json).
-
-## Common P0/P1 patterns worth checking first
-
-| Symptom | Likely cause | Check |
-|---|---|---|
-| Site not indexed at all | `Disallow: /`, sitewide `noindex`, WAF challenge, staging password | robots.txt, meta robots, `X-Robots-Tag`, status code for Googlebot UA |
-| Pages indexed but wrong URL shown | canonical to another host/param, www/apex split, `?m=1` mobile variants | canonical tag, redirects |
-| Rich results vanished | schema errors, content/markup mismatch, ineligible type | JSON-LD parse, visible price vs markup |
-| Blog posts not ranking | thin/duplicate, intent mismatch, cannibalization, no internal links | compare top results' intent and depth |
-| AI assistants never mention the brand | AI crawlers blocked, weak entity signals, no extractable answers, JS-only content | robots.txt bot lines, schema, Q→A structure |
-| Store products missing from Google Shopping/AI | no Product+Offer schema, missing GTIN/brand, feed issues | JSON-LD, Merchant Center (if user has access) |
-
-## Honesty rules for audits
-- "Inspected 5 URLs" — never "crawled the site".
-- No invented SEO scores; priorities + evidence beat a made-up 73/100.
-- Search Console / analytics data is `UNKNOWN` unless the user supplied it or an authorized
-  integration returned it.
-- Competitor comparisons only from pages actually fetched.
+10. **PDF report** when the user asks for a PDF or a shareable report, or the depth is Full:
+    - write the audit JSON (every finding with layer, priority, label, evidence; `not_tested`
+      filled honestly). `seo_probe.py URL --audit-json` gives a single-page starting point to
+      enrich;
+    - `python scripts/validate_json.py audit-report audit.json` must print `VALID`;
+    - `python scripts/audit_report.py audit.json -o <site>-seo-audit.pdf`;
+    - **open the PDF and look at it** (layout, page breaks, nothing truncated) before handing it
+      over, and tell the user which engine produced it (browser or built-in).

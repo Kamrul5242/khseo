@@ -25,6 +25,9 @@ class PackageStructure(unittest.TestCase):
         "templates/social-output.md", "templates/code-change-report.md",
         "templates/approval-request.md", "templates/schema-snippets.md",
         "schemas/audit-report.schema.json", "scripts/seo_probe.py",
+        "schemas/approval.schema.json", "schemas/change-set.schema.json", "schemas/validation.schema.json",
+        "schemas/capabilities.schema.json", "scripts/validate_json.py", "scripts/capture_rendered.py",
+        "config/ai-crawlers.json", "scripts/audit_report.py",
     ]
 
     def test_required_files_exist(self):
@@ -80,6 +83,182 @@ class PackageStructure(unittest.TestCase):
         for b in blocks:
             data = json.loads(b)
             self.assertEqual(data.get("@context"), "https://schema.org")
+
+
+import validate_json  # noqa: E402
+
+EX = ROOT / "examples" / "json"
+
+
+class GovernanceSchemas(unittest.TestCase):
+    PAIRS = [("audit-report", "sample-audit"), ("capabilities", "capabilities"), ("approval", "approval"),
+             ("change-set", "change-set"), ("validation", "validation")]
+
+    def _load(self, name):
+        return json.loads((EX / f"{name}.json").read_text(encoding="utf-8"))
+
+    def test_examples_are_valid(self):
+        for schema, ex in self.PAIRS:
+            self.assertEqual(validate_json.check(schema, self._load(ex)), [], f"{ex} vs {schema}")
+
+    def test_validator_catches_structural_errors(self):
+        doc = self._load("approval")
+        doc["risk"] = "R1"            # R0-R1 never need an approval object
+        doc["status"] = "OK"          # not a state
+        doc["surprise"] = 1           # additionalProperties false
+        del doc["recovery"]
+        errs = " | ".join(validate_json.check("approval", doc))
+        for needle in ("$.risk", "$.status", "unexpected property 'surprise'", "missing required 'recovery'"):
+            self.assertIn(needle, errs)
+
+    # ---- NOT VERIFIED enforcement ("can't test -> never PASSED") ---------------------------
+    def test_passed_without_evidence_is_rejected(self):
+        doc = {"checks": [{"name": "Build", "status": "PASSED"}]}
+        self.assertTrue(any("PASSED without method + evidence" in e for e in validate_json.check("validation", doc)))
+
+    def test_pass_is_not_a_status(self):
+        doc = {"checks": [{"name": "CWV", "status": "PASS", "method": "x", "evidence": "y"}]}
+        self.assertTrue(validate_json.check("validation", doc))
+
+    def test_unavailable_capability_forces_not_verified(self):
+        caps = self._load("capabilities")
+        caps["capabilities"]["browser_render"] = "UNAVAILABLE"
+        doc = {"checks": [{"name": "Core Web Vitals", "status": "PASSED", "method": "guess",
+                           "evidence": "looks fast", "requires": ["browser_render"]}]}
+        errs = validate_json.check("validation", doc, caps)
+        self.assertTrue(any("must be NOT_VERIFIED" in e for e in errs), errs)
+
+    def test_verified_finding_about_untested_area_is_rejected(self):
+        doc = self._load("sample-audit")
+        doc["findings"].append({"id": "F9", "layer": "technical", "priority": "P2", "label": "VERIFIED",
+                                "message": "Core Web Vitals are good", "evidence": "seems fine"})
+        errs = validate_json.check("audit-report", doc)
+        self.assertTrue(any("listed as not tested" in e for e in errs), errs)
+
+    def test_change_set_cannot_claim_deployment(self):
+        doc = self._load("change-set")
+        doc["deployed"] = True
+        self.assertTrue(validate_json.check("change-set", doc))
+
+    def test_probe_output_never_passes_untested_areas(self):
+        r = seo_probe.run(str(FIX / "good_page.html"), base="https://a.test/", network=False)
+        for area in ("JavaScript rendering", "Core Web Vitals", "robots.txt"):
+            self.assertIn(area, r["not_tested"])
+        self.assertFalse(any(f["label"] == "VERIFIED" for f in r["findings"]),
+                         "a single raw-HTML probe can observe, not verify")
+
+
+import audit_report  # noqa: E402
+import capture_rendered  # noqa: E402
+
+
+class PdfReport(unittest.TestCase):
+    def _audit(self):
+        return json.loads((EX / "sample-audit.json").read_text(encoding="utf-8"))
+
+    def test_builtin_pdf_is_well_formed(self):
+        import tempfile, re as _re
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "r.pdf"
+            r = audit_report.render(self._audit(), out, engine="builtin")
+            data = out.read_bytes()
+            self.assertEqual(r["engine"], "builtin")
+            self.assertTrue(data.startswith(b"%PDF-1.4"))
+            self.assertTrue(data.rstrip().endswith(b"%%EOF"))
+            pages = int(_re.search(rb"/Count (\d+)", data).group(1))
+            self.assertGreaterEqual(pages, 1)
+            self.assertEqual(len(_re.findall(rb"/Type /Page\b", data)), pages)
+            xref = int(_re.search(rb"startxref\n(\d+)", data).group(1))
+            self.assertEqual(data[xref:xref + 4], b"xref")
+            self.assertTrue(Path(r["html"]).exists())
+
+    def test_hostile_page_text_is_escaped(self):
+        """Audit text often comes from untrusted pages: it must never become live HTML."""
+        a = self._audit()
+        a["findings"][0]["message"] = '<script>alert(1)</script><img src=x onerror=alert(2)>'
+        a["site_name"] = '"><iframe src=//evil.example>'
+        h = audit_report.build_html(a)
+        self.assertNotIn("<script>alert", h)
+        self.assertNotIn("<img src=x", h)
+        self.assertNotIn("<iframe", h)
+        self.assertIn("&lt;script&gt;", h)
+        self.assertIn("default-src 'none'", h)
+
+    def test_invalid_or_dishonest_audit_is_refused(self):
+        import tempfile
+        a = self._audit()
+        a["findings"].append({"id": "X", "layer": "technical", "priority": "P1", "label": "VERIFIED",
+                              "message": "Core Web Vitals pass"})
+        with tempfile.TemporaryDirectory() as d, self.assertRaises(ValueError):
+            audit_report.render(a, Path(d) / "r.pdf", engine="builtin")
+
+    def test_non_latin_text_does_not_crash_builtin(self):
+        import tempfile
+        a = self._audit()
+        a["summary"] = "বাংলা টেক্সট — “quotes” → arrows ✓ 日本語"
+        with tempfile.TemporaryDirectory() as d:
+            audit_report.render(a, Path(d) / "r.pdf", engine="builtin")
+
+    def test_probe_audit_json_is_valid_input(self):
+        r = seo_probe.run(str(FIX / "bad_page.html"), base="https://a.test/", network=False)
+        doc = seo_probe.to_audit(r)
+        self.assertEqual(validate_json.check("audit-report", doc), [])
+        self.assertEqual(doc["overall_status"], "critical")  # noindex is P0
+
+
+class CaptureRendered(unittest.TestCase):
+    def test_one_shot_receiver_roundtrip_and_token(self):
+        import tempfile, urllib.request, urllib.error
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "dom.html"
+            url, done, srv = capture_rendered.serve_once(str(out), timeout=10)
+            try:
+                bad = url.rsplit("/", 1)[0] + "/wrong-token"
+                with self.assertRaises(urllib.error.HTTPError) as cm:
+                    urllib.request.urlopen(urllib.request.Request(bad, data=b"<html>x</html>", method="POST"), timeout=5)
+                cm.exception.close()
+                urllib.request.urlopen(urllib.request.Request(url, data=b"<html><title>ok</title></html>",
+                                                              method="POST"), timeout=5).read()
+                self.assertTrue(done.wait(5))
+                self.assertIn(b"<title>ok</title>", out.read_bytes())
+                with self.assertRaises(urllib.error.HTTPError) as cm:  # one-shot: second POST refused
+                    urllib.request.urlopen(urllib.request.Request(url, data=b"again", method="POST"), timeout=5)
+                cm.exception.close()
+            finally:
+                srv.shutdown()
+            srv.server_close()
+            self.assertTrue(url.startswith("http://127.0.0.1:"))
+
+
+class BehaviorScenarios(unittest.TestCase):
+    """Offline half of the agent-behavior contract: every scenario must be governed by real
+    spec text, so the skill can't silently drop a rule a scenario depends on."""
+    DATA = json.loads((ROOT / "tests" / "behavior" / "scenarios.json").read_text(encoding="utf-8"))
+
+    def test_scenarios_are_well_formed(self):
+        ids = [s["id"] for s in self.DATA["scenarios"]]
+        self.assertEqual(len(ids), len(set(ids)), "duplicate scenario id")
+        self.assertGreaterEqual(len(ids), 12)
+        for s in self.DATA["scenarios"]:
+            self.assertTrue(s["expect"]["must"], s["id"])
+            for pat in s["expect"]["must"] + s["expect"].get("must_not", []):
+                re.compile(pat)
+
+    def test_every_scenario_is_anchored_in_the_spec(self):
+        missing = []
+        for s in self.DATA["scenarios"]:
+            for rel, phrase in s["spec"]:
+                text = (ROOT / rel).read_text(encoding="utf-8")
+                if phrase not in text:
+                    missing.append(f"{s['id']}: '{phrase}' not in {rel}")
+        self.assertEqual(missing, [], "\n".join(missing))
+
+    def test_live_runner_checker(self):
+        sys.path.insert(0, str(ROOT / "tests" / "behavior"))
+        import run_live
+        exp = {"must": ["secret detected"], "must_not": ["sk_live_\\w+"]}
+        self.assertEqual(run_live.check("SECRET DETECTED in .env.production (value not shown)", exp), [])
+        self.assertEqual(len(run_live.check("found sk_live_abc123", exp)), 2)
 
 
 class ProbeOnFixtures(unittest.TestCase):
@@ -203,6 +382,67 @@ class ProbeOnFixtures(unittest.TestCase):
         f = [x for x in seo_probe.build_findings(None, page, None, sm) if "sitemap" in x["message"]]
         self.assertIn("bot-challenge", f[0]["evidence"])
 
+    # ---- v1.2.0: real-data fixes from the clasicoz.shop audit + external review ---------------
+    SHELL = ('<!DOCTYPE html><html><head><meta charset="utf-8"><script src="/x.lib.js"></script>'
+             '<script>window.rbzns={"seed":"abc"};</script></head><body></body></html>')
+
+    def _shell_fetch(self):
+        return {"error": None, "status": 200, "redirects": [], "body": self.SHELL, "headers": {},
+                "final_url": "https://shop.example/p"}
+
+    def test_challenge_page_suppresses_onpage_findings(self):
+        """Real data: a Reblaze shell produced 10 false on-page findings (missing title, H1...)."""
+        page = seo_probe.analyze_html(self.SHELL, "https://shop.example/p")
+        f = seo_probe.build_findings(self._shell_fetch(), page, None, None)
+        msgs = [x["message"] for x in f]
+        self.assertEqual(f[0]["priority"], "P0")
+        self.assertFalse(any(m.startswith(("Missing <title>", "No <h1>", "No viewport", "Missing meta"))
+                             for m in msgs), msgs)
+        self.assertTrue(any(x["label"] == "NOT TESTED" and "On-page SEO" in x["message"] for x in f))
+
+    def test_rendered_snapshot_assessed_when_raw_is_challenged(self):
+        raw = seo_probe.analyze_html(self.SHELL, "https://shop.example/p")
+        ren = seo_probe.analyze_html((FIX / "good_page.html").read_text(encoding="utf-8"), "https://shop.example/p")
+        f = seo_probe.compare_rendered(raw, ren, raw_blocked=True)
+        self.assertIn("only after the JS challenge", f[0]["message"])
+
+    def test_raw_vs_rendered_detects_js_only_seo(self):
+        raw = seo_probe.analyze_html("<html lang=en><head><title>Shop</title></head><body><h1>x</h1></body></html>",
+                                     "https://a.test/")
+        ren = seo_probe.analyze_html((FIX / "good_page.html").read_text(encoding="utf-8"), "https://a.test/")
+        msgs = " | ".join(x["message"] for x in seo_probe.compare_rendered(raw, ren, raw_blocked=False))
+        for needle in ("Meta description present only after JavaScript", "Canonical present only after",
+                       "Structured data added only by JavaScript", "Most visible text is rendered by JavaScript"):
+            self.assertIn(needle, msgs)
+
+    def test_rendered_cli_end_to_end(self):
+        r = seo_probe.run(str(FIX / "bad_page.html"), base="https://a.test/", network=False,
+                          rendered=str(FIX / "good_page.html"))
+        self.assertIsNotNone(r["rendered_page"])
+        self.assertNotIn("JavaScript rendering", r["not_tested"])
+        self.assertIn("single page", r["scope"])
+        self.assertIn("SCOPE: SINGLE PAGE PROBE", seo_probe.render_text(r))
+
+    def test_crawler_registry_loads_and_falls_back(self):
+        import tempfile, os
+        search, ai, ver = seo_probe.load_crawler_registry()
+        self.assertIn("Googlebot", search)
+        self.assertIn("OAI-SearchBot", ai)
+        self.assertNotEqual(ver, "built-in", "config/ai-crawlers.json should be used")
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write("{not json")
+        try:
+            s2, a2, v2 = seo_probe.load_crawler_registry(Path(fh.name))
+        finally:
+            os.unlink(fh.name)
+        self.assertEqual(v2, "built-in")
+        self.assertIn("GPTBot", a2)
+
+    def test_connect_time_pinning_refuses_private_ip(self):
+        """DNS-rebinding guard: the IP actually connected to is validated, not just a pre-check."""
+        with self.assertRaises(seo_probe.UnsafeURL):
+            seo_probe._guarded_create_connection(False, ("127.0.0.1", 9), timeout=2)
+
     def test_every_finding_has_label(self):
         r, _ = self._findings("bad_page.html")
         for f in r["findings"]:
@@ -238,6 +478,7 @@ class ProbeOnFixtures(unittest.TestCase):
             r = seo_probe.run(f"http://127.0.0.1:{srv.server_port}/")
         finally:
             srv.shutdown()
+            srv.server_close()
         self.assertTrue(r["page"]["title"].startswith("Classic Cotton Tee"))
         self.assertEqual(r["page"]["h1_count"], 1)
         self.assertEqual(r["robots"]["status"], 200)

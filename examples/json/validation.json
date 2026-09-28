@@ -1,0 +1,10 @@
+{
+  "id": "VAL-2026-09-28-01",
+  "change_set_id": "CS-2026-09-28-01",
+  "checks": [
+    {"name": "Build", "status": "PASSED", "method": "npm run build", "evidence": "exit 0, 'Compiled successfully'", "requires": ["terminal"]},
+    {"name": "Metadata on /products/tee", "status": "PASSED", "method": "python scripts/seo_probe.py http://localhost:3000/products/tee", "evidence": "title ok, canonical ok, 1 H1", "requires": ["terminal"]},
+    {"name": "Core Web Vitals", "status": "NOT_VERIFIED", "requires": ["browser_render"], "reason": "no field data; run PageSpeed Insights after deploy"},
+    {"name": "Production response headers", "status": "NOT_VERIFIED", "requires": ["deployment"], "reason": "not deployed (separate gate)"}
+  ]
+}

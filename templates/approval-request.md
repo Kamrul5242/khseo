@@ -32,10 +32,17 @@ KHSEO assessment:[evidence-based interpretation]
 Recommended:     [action]
 ```
 
-**Capability check / ready banner** (show only when the user asks what KHSEO can do here)
+**Capability handshake** (mandatory before tool-dependent work; see SKILL.md §2)
 ```text
-KHSEO READY
-File access: [available/unavailable]   Terminal: [..]   Web fetch: [..]   Browser/JS render: [..]
-Git: [..]   Write access: [available/read-only]   Deployment: [unavailable unless granted]
-Mode: Universal
+KHSEO CAPABILITY CHECK
+Web fetch:          AVAILABLE | UNAVAILABLE
+Browser / JS render: AVAILABLE | UNAVAILABLE
+Terminal / code:    AVAILABLE | UNAVAILABLE
+Filesystem read:    AVAILABLE | UNAVAILABLE
+Write access:       AVAILABLE | READ-ONLY
+Git:                AVAILABLE | UNAVAILABLE
+Search:             AVAILABLE | UNAVAILABLE
+Deployment:         UNAVAILABLE unless the host grants it AND the user approves (separate gate)
+Consequence:        [e.g. "No browser → JavaScript rendering: NOT TESTED"]
 ```
+Machine form: [schemas/capabilities.schema.json](../schemas/capabilities.schema.json).

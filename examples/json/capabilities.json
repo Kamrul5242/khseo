@@ -1,0 +1,15 @@
+{
+  "host": "Claude Code (desktop app)",
+  "checked_at": "2026-09-28T09:00:00Z",
+  "capabilities": {
+    "web_fetch": "AVAILABLE",
+    "browser_render": "AVAILABLE",
+    "terminal": "AVAILABLE",
+    "filesystem_read": "AVAILABLE",
+    "write_access": "AVAILABLE",
+    "git": "AVAILABLE",
+    "search": "UNAVAILABLE",
+    "deployment": "UNAVAILABLE"
+  },
+  "consequences": ["No search tool: research answers are marked unverified", "No deployment: changes stop at the repository"]
+}

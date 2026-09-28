@@ -1,0 +1,14 @@
+{
+  "id": "CS-2026-09-28-01",
+  "task": "Fix missing canonicals and meta descriptions on product routes",
+  "status": "COMPLETED",
+  "backup_id": "git:4f2c9ab",
+  "files": [
+    {"path": "app/products/[slug]/page.tsx", "action": "modified", "risk": "R1", "summary": "generateMetadata: canonical + description"},
+    {"path": "app/sitemap.ts", "action": "created", "risk": "R1", "summary": "dynamic sitemap for public products"}
+  ],
+  "not_applied": ["trailingSlash: true (R3, awaiting approval APR-2026-09-28-02)"],
+  "validation_id": "VAL-2026-09-28-01",
+  "rollback": {"available": "FULL", "method": "git revert <commit>", "performed": false},
+  "deployed": false
+}

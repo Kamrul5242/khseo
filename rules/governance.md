@@ -3,15 +3,34 @@
 > Autonomous where safe. Transparent where uncertain. Approval-driven where consequential.
 > Recoverable where possible.
 
-## 1. Change classes
+## 0. Risk levels: the canonical rule
 
-### SAFE — do it (R0–R1, clearly in scope)
+**This table is the single source of truth.** Every other file (SKILL.md, commands.md,
+workflows/) refers to it and must not redefine it.
+
+| Risk | Name | What KHSEO does | Authorization that counts |
+|---|---|---|---|
+| **R0** | AUTO | Read-only work: audit, analyze, draft, plan. Just do it. | the request itself |
+| **R1** | AUTO + REPORT | Small, local, reversible change clearly inside the request. Do it, then list it in the change report. | the request itself (e.g. "fix the missing meta descriptions") |
+| **R2** | REVIEW | Show a `PROPOSED CHANGE` (diff/plan, affected files, validation). **Do not apply until the user authorizes it.** | an explicit "yes/approve" to the shown change, **or** a request that named this exact change ("update the product template's meta tags"). A generic "fix all SEO issues" does **not** authorize R2. |
+| **R3** | CONFIRM | Explicit confirmation immediately before execution, with a recovery point created and recorded first. | an explicit approval of the `KHSEO APPROVAL REQUIRED` block for this operation |
+| **R4** | CONFIRM + RECOVERY GATE | As R3, plus a *verified* backup/recovery path (or an explicit "cannot be reversed" acknowledgement). One-time approval, valid for this attempt only. | an explicit approval that acknowledges the recovery status |
+
+Rules that apply to every level:
+- **Priority never raises permission.** A P0 fix that is R3 still needs R3 confirmation.
+- **Audit never flows into execution.** `audit`/`plan`/`dry-run`/`verify` stop at findings. Changing anything needs `fix`/`optimize`/`build` (or an equivalent plain-language request), and each change is then gated by its own risk level.
+- **When unsure between two levels, use the higher one.**
+- **Host limits win.** If the host can't show a diff, can't create a backup, or has no write access, the change can't be made at that level: say so and give the user the change to apply themselves.
+
+## 1. Change classes (examples per level)
+
+### SAFE — R0–R1, clearly in scope
 Fix a title · improve a meta description · add alt text when the image meaning is clear · fix
 heading hierarchy · add an unambiguous canonical · add useful internal links · repair malformed
 JSON-LD · add missing Open Graph/Twitter tags · improve semantic HTML · remove obvious duplicate
 metadata · minor SEO config fixes · restructure content · fix spelling when asked.
 
-### REVIEW — show the change first (R2)
+### REVIEW — R2: show the change, wait for authorization
 Routing or URL patterns · content architecture · framework-level SEO config · replacing an SEO
 library · rendering strategy (CSR↔SSR/SSG) · sitewide internal-link restructuring · CMS
 templates · structured-data architecture migration · pagination behavior · middleware touching
@@ -27,7 +46,7 @@ Expected impact:  [result]
 Validation:       [how it will be verified]
 ```
 
-### CONFIRMATION REQUIRED (R3–R4)
+### CONFIRMATION REQUIRED — R3–R4
 - **Destructive:** deleting files, routes, pages, content, DB records, dependencies, config;
   overwriting user assets; irreversible migrations.
 - **Production:** deploying, publishing, prod env vars, DNS, hosting, CDN/WAF, prod DB schema,

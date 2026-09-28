@@ -1,0 +1,14 @@
+{
+  "id": "APR-2026-09-28-01",
+  "action": "Change robots.txt: remove 'Disallow: /products/'",
+  "reason": "Important product pages are blocked from all crawlers",
+  "scope": {"files": ["public/robots.txt"], "pages": ["/products/*"]},
+  "items": [{"n": 1, "action": "Remove Disallow: /products/", "risk": "R3"}],
+  "priority": "P0",
+  "risk": "R3",
+  "status": "PENDING",
+  "requested_at": "2026-09-28T09:10:00Z",
+  "expires": "THIS_OPERATION",
+  "recovery": {"level": "FULL", "backup_status": "VERIFIED", "backup_id": "git:4f2c9ab", "rollback_method": "git revert 4f2c9ab"},
+  "project_state": {"git_head": "4f2c9ab", "branch": "main"}
+}

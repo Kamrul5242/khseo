@@ -1,0 +1,103 @@
+{
+  "target": "https://shop.example/",
+  "site_name": "Example Tee Co",
+  "date": "2026-09-28",
+  "prepared_by": "KHSEO v1.2 (Claude Code host)",
+  "scope": {
+    "depth": "standard",
+    "urls_inspected": [
+      "https://shop.example/",
+      "https://shop.example/robots.txt",
+      "https://shop.example/sitemap.xml",
+      "https://shop.example/christmas",
+      "https://shop.example/wired-for-christmas-tee"
+    ],
+    "note": "Sample of 5 URLs, not a full crawl. Raw HTML via seo_probe.py plus rendered DOM from a real browser."
+  },
+  "capabilities": {
+    "web_fetch": "AVAILABLE",
+    "browser_render": "AVAILABLE",
+    "terminal": "AVAILABLE",
+    "search": "UNAVAILABLE",
+    "deployment": "UNAVAILABLE"
+  },
+  "overall_status": "needs_work",
+  "summary": "In a real browser the on-page SEO is well built: unique titles and descriptions, one H1, correct canonicals, and Product schema whose price matches the page. The blocker is access. Every HTML page and the store sitemap first serve a bot-challenge that only a JavaScript browser can pass, so crawlers that don't run JavaScript (most AI crawlers and link-preview bots) see an empty page.",
+  "findings": [
+    {
+      "id": "F1", "layer": "crawlability", "priority": "P0", "label": "OBSERVED",
+      "message": "Bot-challenge page served instead of content to non-JavaScript clients",
+      "evidence": "/, /collections/all and /sitemap.xml return HTTP 200 with a 509-byte script-only page (window.rbzns); headless Chromium also received the challenge",
+      "url": "https://shop.example/",
+      "fix": "Ask the platform to allowlist verified search and AI crawlers in the bot shield",
+      "fix_risk": "R3", "owner": "platform"
+    },
+    {
+      "id": "F2", "layer": "crawlability", "priority": "P0", "label": "UNKNOWN",
+      "message": "Whether verified Googlebot is let through the shield",
+      "evidence": "The probe ran from a non-Google IP; Search Console data was not available",
+      "fix": "Search Console > URL Inspection > View crawled page on a product URL",
+      "owner": "user"
+    },
+    {
+      "id": "F3", "layer": "ai_readiness", "priority": "P1", "label": "OBSERVED",
+      "message": "All SEO metadata and structured data exist only after JavaScript",
+      "evidence": "Post-challenge server HTML has no canonical, meta description or JSON-LD; rendered DOM has all of them plus Product, BreadcrumbList, Organization and WebSite",
+      "owner": "platform"
+    },
+    {
+      "id": "F4", "layer": "indexability", "priority": "P1", "label": "OBSERVED",
+      "message": "Store /sitemap.xml returns a challenge page, not XML",
+      "evidence": "HTTP 200, text/html, 509 bytes; mirror sitemap on guide.shop.example returns 98 URLs with no challenge",
+      "fix": "Submit the mirror sitemap in Search Console and Bing Webmaster Tools",
+      "fix_risk": "R1", "owner": "user"
+    },
+    {
+      "id": "F5", "layer": "on_page", "priority": "P2", "label": "OBSERVED",
+      "message": "Collection page /christmas has thin server HTML and no meta description",
+      "evidence": "about 30 words in raw HTML",
+      "url": "https://shop.example/christmas",
+      "fix": "Add 80-150 words of original intro copy per collection",
+      "fix_risk": "R1", "owner": "khseo"
+    },
+    {
+      "id": "F6", "layer": "structured_data", "priority": "P3", "label": "VERIFIED",
+      "message": "Product schema price matches the visible price",
+      "evidence": "rendered JSON-LD Offer.price 24.99 USD = visible $24.99 on the product page",
+      "url": "https://shop.example/wired-for-christmas-tee"
+    },
+    {
+      "id": "F7", "layer": "technical", "priority": "P3", "label": "OBSERVED",
+      "message": "1 of 49 homepage images has no alt text",
+      "evidence": "rendered DOM image audit",
+      "fix": "Add descriptive alt text", "fix_risk": "R1", "owner": "user"
+    }
+  ],
+  "action_plan": [
+    {"step": 1, "action": "Check URL Inspection > View crawled page for a product URL in Search Console", "priority": "P0", "risk": "R0", "owner": "user"},
+    {"step": 2, "action": "Ask the platform to allowlist verified search and AI crawlers in the bot shield", "priority": "P0", "risk": "R3", "owner": "platform"},
+    {"step": 3, "action": "Submit the mirror store sitemap in Search Console and Bing", "priority": "P1", "risk": "R1", "owner": "user"},
+    {"step": 4, "action": "Write intro copy for the Christmas, Halloween and Nurse collections", "priority": "P2", "risk": "R1", "owner": "khseo"}
+  ],
+  "ai_search_readiness": [
+    {"area": "robots.txt allows AI crawlers", "status": "Yes", "evidence": "User-agent: * / Disallow: (empty)"},
+    {"area": "Content reachable without JavaScript", "status": "No", "evidence": "challenge page on every HTML URL"},
+    {"area": "Content reachable via mirror site", "status": "Yes", "evidence": "guide mirror: 98 URLs, no challenge"},
+    {"area": "Entity clarity", "status": "Good", "evidence": "Organization + WebSite schema, consistent brand name, sameAs profiles"},
+    {"area": "Machine-readable product facts", "status": "Only after JavaScript", "evidence": "Product schema injected client-side"}
+  ],
+  "what_khseo_can_do": [
+    "Draft the crawler-allowlist request to the platform",
+    "Write collection intro copy and meta descriptions",
+    "Re-run this audit after changes and compare"
+  ],
+  "uncertain": [
+    "Whether verified Googlebot passes the shield",
+    "What Google has actually indexed"
+  ],
+  "not_tested": [
+    "Core Web Vitals",
+    "Index coverage (needs Search Console)",
+    "Other pages of the site"
+  ]
+}
