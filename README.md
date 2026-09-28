@@ -45,6 +45,16 @@ Full behavior is in [commands.md](commands.md).
 | `KHSEO rollback` | undo KHSEO's own recent changes | reverts |
 | `KHSEO stop` | emergency stop | stops |
 | `KHSEO help` | compact command card | no |
+| `KHSEO keywords` | short-tail, mid-tail, long-tail keywords, intent, clusters | no |
+| `KHSEO competitors` | who ranks, why, and how to outrank them with original work | no |
+| `KHSEO rank` | ranking result + plan to reach page 1 / top 3 (a target, never a promise) | no |
+| `KHSEO offpage` | backlinks, digital PR, citations, reviews (outreach as drafts) | no |
+| `KHSEO meta` | write + grade title, description, canonical, OG and Twitter tags | drafts |
+| `KHSEO schema` | truthful JSON-LD structured data | drafts |
+| `KHSEO aeo` / `KHSEO trust` | AEO/GEO/LLM readiness / E-E-A-T and trust | no |
+| `KHSEO social` | platform-native posts | drafts |
+| `KHSEO clean` | remove hidden AI artifacts from your own text | returns text |
+| `KHSEO report` | PDF report, optionally white-label or with your agency brand | creates files |
 
 ## What it covers
 
@@ -143,6 +153,24 @@ available and a built-in stdlib PDF writer otherwise (`--engine builtin`). Disho
 refused: a `VERIFIED` claim about something listed as not tested, or `PASSED` without evidence.
 A sample report comes from [examples/json/sample-audit.json](examples/json/sample-audit.json).
 
+White-label: `--white-label` removes KHSEO branding and `--brand "Your Agency"` puts your name
+on it. The disclaimer and "Not tested" list always stay. Reports can include a **Ranking results**
+table (`rankings[]`: keyword, position or "not in top N", source, location, device, date).
+
+## Growth tools
+
+```bash
+python scripts/meta_tags.py --title "..." --description "..." --url https://site/p --image https://site/i.jpg
+python scripts/meta_tags.py --check page.html        # grade existing tags (SERP pixel widths, canonical, noindex)
+python scripts/clean_text.py draft.md -o clean.md --strip-boilerplate   # your own text only
+```
+
+Keyword, competitor, ranking and off-page work follows
+[workflows/keywords.md](workflows/keywords.md), [competitors.md](workflows/competitors.md),
+[ranking.md](workflows/ranking.md) and [offpage.md](workflows/offpage.md). KHSEO copies
+strategies but never content, treats top 3 as a target rather than a promise, and shows metrics
+only when they come from a real data source.
+
 ## Governance as data
 
 [schemas/](schemas/) holds machine-readable contracts for `audit-report`, `approval`,
@@ -167,7 +195,9 @@ khseo/
 │   ├── seo_probe.py         single-page crawler-view probe (raw vs rendered, --audit-json)
 │   ├── capture_rendered.py  one-shot receiver for a rendered DOM from a real browser
 │   ├── audit_report.py      audit JSON -> HTML + PDF report
-│   └── validate_json.py     schema validator + honesty lint
+│   ├── validate_json.py     schema validator + honesty lint
+│   ├── meta_tags.py         build + grade meta tags
+│   └── clean_text.py        strip hidden AI artifacts from your own text
 ├── config/ai-crawlers.json  crawler registry (update without code changes)
 ├── adapters/                ChatGPT / Gemini / Cursor / Copilot / AGENTS.md / generic prompt
 ├── examples/                request → behavior walkthroughs
@@ -182,7 +212,7 @@ khseo/
 python tests/run_tests.py
 ```
 
-48 offline tests cover the skill structure and links, every JSON contract and the honesty
+56 offline tests cover the skill structure and links, every JSON contract and the honesty
 lint, the probe (including RFC 9309 robots, SSRF/DNS-pinning, gzip-bomb, challenge pages and
 raw-vs-rendered), both PDF engines, HTML escaping, and the agent-behavior scenarios' spec anchors.
 

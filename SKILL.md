@@ -2,12 +2,13 @@
 name: khseo
 description: >-
   KHSEO (Kamrul Hasan SEO) — universal SEO + AI-search + content + vibe-coding skill.
-  Use whenever the user says "KHSEO", or asks to audit a website/URL/sitemap, fix SEO in a
-  codebase (Next.js, React, Vue, Nuxt, Astro, SvelteKit, Laravel, Django, WordPress, Shopify,
-  Blogger, static HTML), check AI-search/AEO/GEO/LLM readiness, write or rewrite SEO blog posts,
-  articles, product/category/service pages, humanize content, add schema/structured data,
-  or turn content into platform-native social posts (Facebook, Instagram, LinkedIn, X, Threads,
-  TikTok, YouTube, Pinterest). Detects the mode automatically; the user never needs sub-commands.
+  Use whenever the user says "KHSEO", or asks to audit a website/URL/sitemap (incl. PDF reports),
+  fix or build SEO in a codebase (Next.js, React, Vue, Nuxt, Astro, SvelteKit, Laravel, Django,
+  WordPress, Shopify, Blogger, static HTML), research short/long-tail keywords, find and analyze
+  competitors, check rankings and plan for Google page 1 / top 3, generate meta tags or
+  structured data, plan off-page SEO and backlinks, check AEO/GEO/LLM and E-E-A-T readiness,
+  write or rewrite SEO content, clean hidden AI artifacts from text, or create platform-native
+  social posts. Detects the mode automatically; sub-commands are optional.
 ---
 
 # KHSEO — Universal SEO + AI Search + Content Intelligence
@@ -52,6 +53,7 @@ Classify the request (it can be several at once), then open the matching workflo
 | "write/rewrite/humanize/optimize" article, blog, product, landing, FAQ, about page | **C · Writer** | RESEARCH + WRITE/REWRITE + SEO + AEO + GEO + QC | [workflows/content.md](workflows/content.md) |
 | Platform named (Facebook, IG, LinkedIn, X, TikTok, YouTube, Pinterest, Threads) | **D · Social** | SOCIAL | [workflows/social.md](workflows/social.md) |
 | Non-technical phrasing: "make my website better for Google and AI" | **E · General user** | translate → A/B/C, plain language | [workflows/general-user.md](workflows/general-user.md) |
+| Keywords, competitors, "rank #1", "page 1", backlinks, authority | **F · Growth strategist** | RESEARCH + ANALYZE + PLAN (read-only) | [keywords](workflows/keywords.md) · [competitors](workflows/competitors.md) · [ranking](workflows/ranking.md) · [offpage](workflows/offpage.md) |
 
 ### Optional control commands (never required)
 
@@ -75,6 +77,11 @@ each is in [commands.md](commands.md):
 | `KHSEO rollback` | revert KHSEO's own diff only | reverts |
 | `KHSEO stop` | emergency stop, overrides everything | stops |
 | `KHSEO help` | print the compact help card from commands.md, not the whole spec | never |
+| `KHSEO keywords` · `competitors` · `rank` · `offpage` | growth research + top-3 plan (Mode F); numbers only from real data sources | never |
+| `KHSEO meta` · `KHSEO schema` · `KHSEO social` | meta tags / JSON-LD / social drafts | drafts |
+| `KHSEO aeo` · `KHSEO trust` | AEO/GEO/LLM and E-E-A-T readiness + plan | never |
+| `KHSEO clean` | strip invisible characters / chatbot boilerplate from the user's own text | returns text |
+| `KHSEO report` | PDF + HTML report; `--brand` / `--white-label` | creates files |
 
 Read-only commands stay read-only even if the trailing text says "and fix it". Finish the
 read-only work, then offer the modifying command.
@@ -168,6 +175,11 @@ Reputation → AI-search readiness → Verify.** Checklists per layer: [rules/se
 - `scripts/validate_json.py <schema> doc.json` — validates any KHSEO JSON contract (audit,
   approval, change-set, validation, capabilities) and runs the honesty lint: `PASSED` needs
   method + evidence, and anything requiring an unavailable capability must be `NOT_VERIFIED`.
+- `scripts/meta_tags.py` — assembles escaped title/description/canonical/robots/Open Graph/Twitter
+  tags from words KHSEO wrote, and grades them (estimated SERP pixel width, absolute canonical,
+  noindex). `--check page.html` grades an existing page.
+- `scripts/clean_text.py` — removes invisible watermark and injection characters and flags or
+  strips chatbot boilerplate in the user's own text. It never touches copyright notices.
 - `tests/run_tests.py` — validates this package (structure, frontmatter, links, schemas, probe,
   PDF, security regressions).
 - Worked request → behavior examples: [examples/README.md](examples/README.md). Loading KHSEO
@@ -185,6 +197,7 @@ Pick the template for the mode; include only the sections that are relevant.
 | Rewrite / humanize | [templates/rewrite-output.md](templates/rewrite-output.md) |
 | Social posts | [templates/social-output.md](templates/social-output.md) |
 | Code analysis + change report | [templates/code-change-report.md](templates/code-change-report.md) |
+| Keywords / competitors / ranking + top-3 plan / off-page | [keyword-report](templates/keyword-report.md) · [competitor-analysis](templates/competitor-analysis.md) · [ranking-plan](templates/ranking-plan.md) · [offpage-plan](templates/offpage-plan.md) |
 | Approval request / assumption / proposed change | [templates/approval-request.md](templates/approval-request.md) |
 
 Every response ends by answering, briefly: **What did I find? Why does it matter? What should be

@@ -152,6 +152,73 @@
       "items": {
         "type": "string"
       }
+    },
+    "rankings": {
+      "type": "array",
+      "description": "Ranking results actually observed. position null = not found in the results checked.",
+      "items": {
+        "type": "object",
+        "required": [
+          "keyword",
+          "position",
+          "source",
+          "date"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "checked_depth": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "how many results were checked, e.g. 20"
+          },
+          "url": {
+            "type": "string"
+          },
+          "engine": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "device": {
+            "enum": [
+              "desktop",
+              "mobile",
+              "any"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 3,
+            "description": "e.g. 'Search Console', 'live SERP via browser'"
+          },
+          "date": {
+            "type": "string",
+            "minLength": 8
+          },
+          "label": {
+            "enum": [
+              "VERIFIED",
+              "OBSERVED"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "description": "goal, e.g. 'top 3' (a target, not a guarantee)"
+          }
+        }
+      }
     }
   },
   "$defs": {

@@ -32,6 +32,27 @@ over safety, honesty, or authorization.
 24. Prefer practical fixes over unnecessary complexity.
 25. Verify important changes before declaring the work complete.
 
+## Growth rules (keywords, competitors, ranking, off-page)
+
+- **Copy strategies, never content.** Learn why competitors rank, then build something better
+  and original. Never copy, spin or lightly reword their text, images, reviews or data.
+- **Top 1–3 is a target, never a promise.** Plan for it, measure it, and report honestly.
+- **Numbers need a source.** Search volume, difficulty, CPC, positions, traffic and backlink
+  counts come from a real data source (with source, date, market) or are `UNKNOWN`. See the tiers
+  in [workflows/keywords.md](../workflows/keywords.md).
+- **Earned authority only.** No bought links, PBNs, link schemes, fake reviews or negative SEO.
+
+## Branding, watermarks & copyright
+
+- KHSEO reports can be **white-labelled** (`--white-label`, `--brand`). That removes KHSEO's
+  *own* name. The disclaimer, evidence labels and "Not tested" list always stay.
+- `clean_text.py` removes hidden characters and chatbot boilerplate from the **user's own**
+  text. KHSEO never removes other people's copyright notices, attributions, licence terms or
+  image watermarks, and never helps pass off someone else's work as the user's. That's
+  copyright infringement, and it would also be duplicate content.
+- Cleaning isn't disguise: KHSEO doesn't promise "undetectable" text, and platform disclosure
+  rules still apply.
+
 ## Evidence labels
 
 | Label | Meaning | Example |

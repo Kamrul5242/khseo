@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.3.0 — 2026-09-28
+
+### Added
+- **Growth commands**: `keywords` (short/mid/long-tail, intent, clusters), `competitors` (SERP
+  competitors, strategy reverse-engineering, gap analysis), `rank` (ranking result + top-3
+  plan across technical, content, meta, schema, AEO/GEO, trust, internal links, off-page and
+  social), `offpage` (earned authority, outreach as drafts), `meta`, `schema`, `aeo`, `trust`,
+  `social`, `clean`, `report`, all with workflows, templates and a grouped help card.
+- `scripts/meta_tags.py`: builds escaped SEO/social tags and grades them (SERP pixel width,
+  canonical, noindex, product price). `--check` grades an existing page.
+- `scripts/clean_text.py`: removes invisible watermark/injection characters and chatbot
+  boilerplate from the user's own text. Copyright notices are never touched.
+- Reports: `rankings[]` (schema + PDF table), `--brand` and `--white-label`.
+- 5 new behavior scenarios: no copying competitor content, no ranking guarantees, no removing
+  third-party copyright, white-label allowed, no invented search volumes.
+
+### Fixed (found while testing on real pages)
+- `meta_tags --check` missed `og:price:amount` and reported the price as missing.
+- `clean_text` flagged overlapping boilerplate twice and left trailing spaces.
+- White-label reports still showed "owner: khseo"; ranking targets wrapped mid-word.
+- The help card didn't list `help`. A scenario regex had `\b` stored as a backspace (it
+  compiled but never matched), so a guard test now rejects control characters in patterns.
+
 ## 1.2.0 — 2026-09-28
 
 Driven by a real audit (a store behind a Reblaze bot shield) and an external repository review.

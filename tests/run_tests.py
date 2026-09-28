@@ -27,7 +27,10 @@ class PackageStructure(unittest.TestCase):
         "schemas/audit-report.schema.json", "scripts/seo_probe.py",
         "schemas/approval.schema.json", "schemas/change-set.schema.json", "schemas/validation.schema.json",
         "schemas/capabilities.schema.json", "scripts/validate_json.py", "scripts/capture_rendered.py",
-        "config/ai-crawlers.json", "scripts/audit_report.py",
+        "config/ai-crawlers.json", "scripts/audit_report.py", "scripts/meta_tags.py", "scripts/clean_text.py",
+        "workflows/keywords.md", "workflows/competitors.md", "workflows/ranking.md", "workflows/offpage.md",
+        "templates/keyword-report.md", "templates/competitor-analysis.md", "templates/ranking-plan.md",
+        "templates/offpage-plan.md",
     ]
 
     def test_required_files_exist(self):
@@ -36,12 +39,16 @@ class PackageStructure(unittest.TestCase):
 
     def test_all_commands_documented(self):
         cmds = ["audit", "fix", "write", "optimize", "build", "verify", "research", "plan",
-                "dry-run", "status", "approve", "reject", "rollback", "stop", "help"]
+                "dry-run", "status", "approve", "reject", "rollback", "stop", "help",
+                "meta", "keywords", "competitors", "rank", "offpage", "schema", "aeo", "trust",
+                "social", "clean", "report"]
         ref = (ROOT / "commands.md").read_text(encoding="utf-8")
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         for c in cmds:
             self.assertIn(f"### `KHSEO {c}`", ref, f"commands.md missing section for {c}")
-            self.assertIn(f"`KHSEO {c}", skill, f"SKILL.md table missing {c}")
+            self.assertIn(c, skill, f"SKILL.md missing {c}")
+            self.assertIn(f"  {c} ", ref.split("KHSEO: just type", 1)[1].split("Examples", 1)[0] + " ",
+                          f"help card missing {c}") if c not in ("approve", "reject") else None
 
     def test_skill_frontmatter(self):
         text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -69,6 +76,17 @@ class PackageStructure(unittest.TestCase):
                 if not (md.parent / target).resolve().exists():
                     broken.append(f"{md.relative_to(ROOT)} -> {target}")
         self.assertEqual(broken, [], "broken links:\n" + "\n".join(broken))
+
+    def test_no_control_characters_in_repo_text(self):
+        """Mangled escapes (\\b -> backspace) hit 3 files once; keep every text file clean."""
+        bad = []
+        for f in ROOT.rglob("*"):
+            if ".git" in f.parts or f.suffix not in (".md", ".json", ".py", ".yml", ".html"):
+                continue
+            text = f.read_text(encoding="utf-8")
+            if any(ord(c) < 32 and c not in "\n\r\t" for c in text):
+                bad.append(str(f.relative_to(ROOT)))
+        self.assertEqual(bad, [])
 
     def test_json_files_parse(self):
         for js in ROOT.rglob("*.json"):
@@ -206,6 +224,45 @@ class PdfReport(unittest.TestCase):
         self.assertEqual(doc["overall_status"], "critical")  # noindex is P0
 
 
+class RankingsAndWhiteLabel(unittest.TestCase):
+    def _audit(self):
+        return json.loads((EX / "sample-audit.json").read_text(encoding="utf-8"))
+
+    def test_rankings_render_and_validate(self):
+        a = self._audit()
+        self.assertTrue(a["rankings"], "sample must carry ranking rows")
+        self.assertEqual(validate_json.check("audit-report", a), [])
+        h = audit_report.build_html(a)
+        self.assertIn("Ranking results", h)
+        self.assertIn("not in top 20", h)
+        self.assertIn("not guarantees", h)
+
+    def test_ranking_row_needs_source_and_date(self):
+        a = self._audit()
+        a["rankings"].append({"keyword": "x", "position": 1})
+        errs = " | ".join(validate_json.check("audit-report", a))
+        self.assertIn("missing required 'source'", errs)
+        a["rankings"][-1].update(source="GSC", date="2026-09-28", position=0)
+        self.assertTrue(validate_json.check("audit-report", a), "position 0 is impossible")
+
+    def test_white_label_removes_all_khseo_branding(self):
+        import tempfile, zlib, re as _re
+        a = self._audit()
+        for kwargs in ({"white_label": True}, {"brand": "Acme SEO"}):
+            br = audit_report.labels(**kwargs)
+            h = audit_report.build_html(a, br)
+            self.assertNotRegex(h.lower(), "khseo", kwargs)
+            self.assertIn("No ranking, traffic", h, "disclaimer must survive white-labelling")
+            self.assertIn("Not tested", h)
+            with tempfile.TemporaryDirectory() as d:
+                out = Path(d) / "r.pdf"
+                audit_report.render(a, out, engine="builtin", **kwargs)
+                data = out.read_bytes()
+                text = b"".join(zlib.decompress(m) for m in _re.findall(rb"stream\n(.*?)\nendstream", data, _re.S))
+                self.assertNotRegex(text.lower(), rb"khseo", kwargs)
+        self.assertIn("Acme SEO", audit_report.build_html(a, audit_report.labels(brand="Acme SEO")))
+
+
 class CaptureRendered(unittest.TestCase):
     def test_one_shot_receiver_roundtrip_and_token(self):
         import tempfile, urllib.request, urllib.error
@@ -230,6 +287,58 @@ class CaptureRendered(unittest.TestCase):
             self.assertTrue(url.startswith("http://127.0.0.1:"))
 
 
+import meta_tags  # noqa: E402
+import clean_text  # noqa: E402
+
+
+class MetaTags(unittest.TestCase):
+    def test_build_escapes_and_includes_social(self):
+        h = meta_tags.build({"title": 'Tee "Best" <b>', "description": "x" * 150,
+                             "url": "https://a.test/p", "image": "https://a.test/i.jpg", "type": "product",
+                             "price": "24.99"})
+        self.assertIn("&quot;Best&quot; &lt;b&gt;", h)
+        for needle in ('rel="canonical"', 'og:image', 'twitter:card" content="summary_large_image',
+                       'product:price:amount'):
+            self.assertIn(needle, h)
+
+    def test_grade_catches_real_problems(self):
+        g = meta_tags.grade({"title": "W" * 60, "description": "short", "url": "/relative",
+                             "robots": "noindex", "keywords": "a,b"})
+        self.assertTrue(any("truncated" in w for w in g["warnings"]))
+        self.assertTrue(any("absolute" in e for e in g["errors"]))
+        self.assertTrue(any("noindex" in w for w in g["warnings"]))
+        self.assertTrue(any("ignored by Google" in w for w in g["warnings"]))
+
+    def test_check_reads_price_from_existing_page(self):
+        """Regression (real data): og:price:amount on the page was reported as missing."""
+        page = ('<html><head><title>Wired for Christmas Electrician T-Shirt | Shop</title>'
+                '<meta property="og:type" content="product"><meta property="og:price:amount" content="24.99">'
+                '<link rel="canonical" href="https://a.test/p"></head></html>')
+        g = meta_tags.grade(meta_tags.extract(page))
+        self.assertFalse(any("price" in m for m in g["missing"]), g)
+
+
+class CleanText(unittest.TestCase):
+    RAW = ("Sure! Here's the rewritten intro:\nOur tee​ is soft and warm.\U000e0041 I hope this helps!\n"
+           "© 2026 Example Co. All rights reserved.\n")
+
+    def test_removes_hidden_characters_keeps_copyright(self):
+        out, rep = clean_text.clean(self.RAW)
+        self.assertNotIn("​", out)
+        self.assertNotIn("\U000e0041", out)
+        self.assertEqual(rep["invisible_removed"], 2)
+        self.assertIn("© 2026 Example Co. All rights reserved.", out, "copyright notices are never touched")
+
+    def test_flags_once_and_strips_on_request(self):
+        out, rep = clean_text.clean(self.RAW)
+        self.assertEqual(len(rep["boilerplate"]), 2, rep["boilerplate"])
+        self.assertIn("I hope this helps", out, "flag-only by default")
+        out2, rep2 = clean_text.clean(self.RAW, strip_boilerplate=True)
+        self.assertNotIn("I hope this helps", out2)
+        self.assertNotIn("Here's the rewritten", out2)
+        self.assertFalse(any(line.endswith(" ") for line in out2.splitlines()))
+
+
 class BehaviorScenarios(unittest.TestCase):
     """Offline half of the agent-behavior contract: every scenario must be governed by real
     spec text, so the skill can't silently drop a rule a scenario depends on."""
@@ -243,6 +352,8 @@ class BehaviorScenarios(unittest.TestCase):
             self.assertTrue(s["expect"]["must"], s["id"])
             for pat in s["expect"]["must"] + s["expect"].get("must_not", []):
                 re.compile(pat)
+                # a mangled escape (e.g. \b stored as a backspace) compiles but never matches
+                self.assertFalse(any(ord(c) < 32 for c in pat), f"{s['id']}: control char in /{pat!r}/")
 
     def test_every_scenario_is_anchored_in_the_spec(self):
         missing = []
@@ -259,6 +370,9 @@ class BehaviorScenarios(unittest.TestCase):
         exp = {"must": ["secret detected"], "must_not": ["sk_live_\\w+"]}
         self.assertEqual(run_live.check("SECRET DETECTED in .env.production (value not shown)", exp), [])
         self.assertEqual(len(run_live.check("found sk_live_abc123", exp)), 2)
+        vol = next(s for s in self.DATA["scenarios"] if s["id"] == "invented_search_volume")["expect"]
+        self.assertTrue(run_live.check("nurse christmas shirt: 12,100 monthly searches", vol),
+                        "invented volumes must be caught")
 
 
 class ProbeOnFixtures(unittest.TestCase):
