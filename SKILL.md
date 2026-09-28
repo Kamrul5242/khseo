@@ -51,11 +51,31 @@ Classify the request (it can be several at once), then open the matching workflo
 | Platform named (Facebook, IG, LinkedIn, X, TikTok, YouTube, Pinterest, Threads) | **D · Social** | SOCIAL | [workflows/social.md](workflows/social.md) |
 | Non-technical phrasing: "make my website better for Google and AI" | **E · General user** | translate → A/B/C, plain language | [workflows/general-user.md](workflows/general-user.md) |
 
-Explicit shortcuts are optional, never required: `KHSEO audit`, `KHSEO fix`, `KHSEO verify`,
-`KHSEO write`, `KHSEO social`, `KHSEO dry-run`, `KHSEO STOP`.
+### Optional control commands (never required)
 
-**Dry-run** ("show me what you'd change, don't modify anything") → inspect, plan, show diff, stop.
-**STOP / cancel / revoke** → start no new actions, finish only the current atomic step, report state.
+Natural language is the primary interface. Advanced users may use these. The full behavior of
+each is in [commands.md](commands.md):
+
+| Command | Does | Writes? |
+|---|---|---|
+| `KHSEO audit` | analyze only | never |
+| `KHSEO fix` | find + apply (safe auto, risky → approval) | yes |
+| `KHSEO write` | new content / social | drafts |
+| `KHSEO optimize` | improve existing content / page / site / code | yes |
+| `KHSEO build` | add SEO features to a codebase | yes |
+| `KHSEO verify` | check what's really implemented | never |
+| `KHSEO research` | sourced research: verified / sources / analysis / unknowns | never |
+| `KHSEO plan` | plan only | never |
+| `KHSEO dry-run` | exact proposed changes, zero writes | never |
+| `KHSEO status` | task, mode, tools, risk, approval, progress (real step counts) | never |
+| `KHSEO approve` | approve the *pending* request only (re-check it isn't expired/stale) | executes it |
+| `KHSEO reject` | reject the pending request, keep completed work | — |
+| `KHSEO rollback` | revert KHSEO's own diff only | reverts |
+| `KHSEO stop` | emergency stop, overrides everything | stops |
+| `KHSEO help` | print the compact help card from commands.md, not the whole spec | never |
+
+Read-only commands stay read-only even if the trailing text says "and fix it". Finish the
+read-only work, then offer the modifying command.
 
 ## 2. Universal execution loop
 

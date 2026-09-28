@@ -18,6 +18,29 @@ KHSEO check whether my site is ready for AI search
 KHSEO make my website better for Google and AI        ← no SEO knowledge needed
 ```
 
+## Commands
+
+`KHSEO` + plain language is all you need. Advanced users can use optional control commands.
+Full behavior is in [commands.md](commands.md).
+
+| Command | Purpose | Changes files? |
+|---|---|---|
+| `KHSEO` | universal: detects what you want | depends |
+| `KHSEO audit` | audit/analyze | no |
+| `KHSEO fix` | find and apply fixes (risky ones ask first) | yes |
+| `KHSEO write` | create SEO / website / social content | drafts |
+| `KHSEO optimize` | improve existing content, page, site, or code | yes |
+| `KHSEO build` | build SEO features into a project | yes |
+| `KHSEO verify` | validate what's actually implemented | no |
+| `KHSEO research` | sourced research | no |
+| `KHSEO plan` | implementation plan | no |
+| `KHSEO dry-run` | show exact proposed changes | no |
+| `KHSEO status` | task, tools, risk, approval, progress | no |
+| `KHSEO approve` / `reject` | decide on a pending risky action | — |
+| `KHSEO rollback` | undo KHSEO's own recent changes | reverts |
+| `KHSEO stop` | emergency stop | stops |
+| `KHSEO help` | compact command card | no |
+
 ## What it covers
 
 | Area | Includes |
@@ -80,6 +103,7 @@ types, Open Graph, and raw-HTML word count. It's honest about limits: it lists w
 ```text
 khseo/
 ├── SKILL.md                 entry point: mode detection, execution loop, risk matrix
+├── commands.md              optional control commands + help card
 ├── rules/
 │   ├── core-rules.md        universal rules, evidence labels, writing & source rules, privacy
 │   ├── governance.md        approvals, conflicts, backups, rollback, deploy & DB gates

@@ -17,7 +17,7 @@ FIX = ROOT / "tests" / "fixtures"
 
 class PackageStructure(unittest.TestCase):
     REQUIRED = [
-        "SKILL.md", "README.md", "LICENSE",
+        "SKILL.md", "README.md", "LICENSE", "commands.md",
         "rules/core-rules.md", "rules/governance.md", "rules/seo-checklists.md",
         "workflows/audit.md", "workflows/code.md", "workflows/content.md",
         "workflows/social.md", "workflows/general-user.md",
@@ -30,6 +30,15 @@ class PackageStructure(unittest.TestCase):
     def test_required_files_exist(self):
         missing = [p for p in self.REQUIRED if not (ROOT / p).is_file()]
         self.assertEqual(missing, [], f"missing files: {missing}")
+
+    def test_all_commands_documented(self):
+        cmds = ["audit", "fix", "write", "optimize", "build", "verify", "research", "plan",
+                "dry-run", "status", "approve", "reject", "rollback", "stop", "help"]
+        ref = (ROOT / "commands.md").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for c in cmds:
+            self.assertIn(f"### `KHSEO {c}`", ref, f"commands.md missing section for {c}")
+            self.assertIn(f"`KHSEO {c}", skill, f"SKILL.md table missing {c}")
 
     def test_skill_frontmatter(self):
         text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
