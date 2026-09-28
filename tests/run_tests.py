@@ -196,6 +196,13 @@ class ProbeOnFixtures(unittest.TestCase):
         self.assertNotIn("Traceback", o.stderr)
         self.assertTrue(seo_probe.urlparse("HTTPS://x.test/").scheme.lower() == "https")
 
+    def test_challenged_sitemap_is_named(self):
+        sm = {"checked": [{"url": "https://a.test/sitemap.xml", "status": 200, "is_xml": False,
+                           "url_entries": 0, "is_index": False, "challenged": True}]}
+        page = seo_probe.analyze_html("<title>x</title>", "https://a.test/")
+        f = [x for x in seo_probe.build_findings(None, page, None, sm) if "sitemap" in x["message"]]
+        self.assertIn("bot-challenge", f[0]["evidence"])
+
     def test_every_finding_has_label(self):
         r, _ = self._findings("bad_page.html")
         for f in r["findings"]:

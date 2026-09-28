@@ -440,6 +440,7 @@ def check_sitemap(page_url: str, declared: list[str], allow_private: bool = Fals
             "is_xml": body.lstrip().startswith("<?xml") or "<urlset" in body or "<sitemapindex" in body,
             "url_entries": body.count("<loc>"),
             "is_index": "<sitemapindex" in body,
+            "challenged": any(re.search(x, body, re.I) for x in CHALLENGE_STRONG),
         })
     return {"checked": results}
 
@@ -509,7 +510,7 @@ def build_findings(fetch_res: dict | None, page: dict, robots: dict | None, site
                 ", ".join(s["url"] for s in skipped))
         if not ok and len(skipped) < len(sitemap["checked"]):
             add("P1", "OBSERVED", "No reachable XML sitemap found",
-                "; ".join(f"{s['url']} -> HTTP {s['status']}" + ("" if s["is_xml"] else " (not XML)")
+                "; ".join(f"{s['url']} -> HTTP {s['status']}" + ("" if s["is_xml"] else " (bot-challenge page, not XML)" if s.get("challenged") else " (not XML)")
                           for s in sitemap["checked"] if not s.get("skipped")))
 
     if not page["title"]:
