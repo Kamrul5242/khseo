@@ -13,6 +13,10 @@ Open-source hardening from an external review. No change to SEO logic or governa
 - Dependency review on pull requests; weekly OpenSSF Scorecard.
 - `persist-credentials: false` on every checkout; least-privilege permissions per job.
 - `SECURITY.md` with the reporting process and scope.
+- **Fixed (found by the new CodeQL scan):** `capture_rendered.py` reflected the request's
+  `Origin` header into `Access-Control-Allow-Origin` on every OPTIONS request, even without the
+  token (response-splitting / permissive-CORS risk). It now always sends `*`, with a regression test.
+- Private vulnerability reporting enabled on the repository.
 
 ### Added
 - Canonical `VERSION` file and `scripts/khseo_version.py` (KHSEO, spec, schema versions); every

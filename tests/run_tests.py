@@ -301,6 +301,23 @@ class RankingsAndWhiteLabel(unittest.TestCase):
 
 
 class CaptureRendered(unittest.TestCase):
+    def test_origin_is_never_reflected(self):
+        """Regression (CodeQL py/http-response-splitting): client headers must not be echoed."""
+        import http.client
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            url, done, srv = capture_rendered.serve_once(str(Path(d) / "x.html"), timeout=5)
+            try:
+                conn = http.client.HTTPConnection("127.0.0.1", srv.server_address[1], timeout=5)
+                conn.request("OPTIONS", "/anything", headers={"Origin": "https://evil.example"})
+                r = conn.getresponse()
+                r.read()
+                self.assertEqual(r.getheader("Access-Control-Allow-Origin"), "*")
+                conn.close()
+            finally:
+                srv.shutdown()
+                srv.server_close()
+
     def test_one_shot_receiver_roundtrip_and_token(self):
         import tempfile, urllib.request, urllib.error
         with tempfile.TemporaryDirectory() as d:

@@ -6,8 +6,9 @@ Only the latest release on `main` gets security fixes. See [CHANGELOG.md](CHANGE
 
 ## Reporting a vulnerability
 
-Please **don't open a public issue**. Report privately through GitHub:
-**Security → Report a vulnerability** on this repository (private vulnerability reporting).
+Please **don't open a public issue**. Report privately through GitHub's private vulnerability
+reporting: **<https://github.com/Kamrul5242/khseo/security/advisories/new>**
+(Security tab → Report a vulnerability).
 Include the affected file/version (`VERSION`), steps to reproduce, and impact. You can expect an
 acknowledgement within 7 days and a fix or mitigation plan within 30 days for confirmed issues.
 

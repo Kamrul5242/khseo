@@ -30,8 +30,10 @@ def serve_once(out_path: str, timeout: float = 300.0, port: int = 0) -> tuple[st
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def _cors(self):
-            origin = self.headers.get("Origin", "*")
-            self.send_header("Access-Control-Allow-Origin", origin)
+            # Constant "*", never the request's Origin: reflecting a client-supplied header is a
+            # response-splitting/CORS risk (CodeQL py/http-response-splitting). The capture
+            # fetch sends no credentials, so "*" is sufficient; the URL token is the access control.
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             # Chrome Private Network Access: public page -> loopback needs this opt-in.
