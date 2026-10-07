@@ -242,6 +242,12 @@ python tests/behavior/run_live.py --cmd "claude -p"
 - Security: [SECURITY.md](SECURITY.md). CI runs the offline tests, CodeQL, dependency review
   and OpenSSF Scorecard, with every action pinned to a commit SHA.
 
+## Related projects
+
+- **[KHSEO WordPress](https://github.com/Kamrul5242/khseo-wordpress)**: a WordPress plugin that
+  implements this specification natively, and works without an AI API. It is a separate repository;
+  this repo stays the model-neutral specification and contains no WordPress code.
+
 ## License
 
 MIT © Kamrul Hasan

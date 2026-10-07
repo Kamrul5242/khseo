@@ -30,6 +30,7 @@ class PackageStructure(unittest.TestCase):
         "config/ai-crawlers.json", "scripts/audit_report.py", "scripts/meta_tags.py", "scripts/clean_text.py", "VERSION", "scripts/khseo_version.py",
         "SECURITY.md", ".github/dependabot.yml",
         "workflows/keywords.md", "workflows/competitors.md", "workflows/ranking.md", "workflows/offpage.md",
+        "workflows/gig.md",
         "templates/keyword-report.md", "templates/competitor-analysis.md", "templates/ranking-plan.md",
         "templates/offpage-plan.md",
     ]
