@@ -56,7 +56,17 @@ copy-pasted text.
 **KHSEO does:** asks only for the URL → audits quietly → explains the top 3 problems in plain
 words with who fixes each → offers to do the ones it can (copy, schema, blog plan) right now.
 
-## 7. Dry run & stop
+## 7. Freelancer gig (Mode G)
+**User:** `KHSEO gig optimize my Fiverr logo design gig for restaurants`
+
+**KHSEO does:** loads only `workflows/gig.md` → takes primary and secondary terms from Fiverr's
+own autocomplete and the top gigs' patterns (`OBSERVED`, volumes `UNKNOWN`) → picks the most
+specific subcategory → title `I will design a modern logo for your restaurant or cafe` (counted
+against the 80-character limit) → buyer-first description, 5 distinct tags, a Basic/Standard/Premium
+ladder and 4 FAQs → `[ADD: real portfolio samples]` instead of inventing proof → refuses fake
+reviews and off-platform payment. The user publishes the drafts.
+
+## 8. Dry run & stop
 - `KHSEO show me what you'd change in this repo, don't modify anything` → plan + diff, zero writes.
 - `KHSEO STOP` → finishes only the current atomic edit, starts nothing new, reports state and
   offers to roll back its own changes.

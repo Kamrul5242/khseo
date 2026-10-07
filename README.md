@@ -215,7 +215,7 @@ khseo/
 python tests/run_tests.py
 ```
 
-59 offline tests cover the skill structure and links, every JSON contract and the honesty
+The offline suite covers the skill structure and links, every JSON contract and the honesty
 lint, the probe (including RFC 9309 robots, SSRF/DNS-pinning, gzip-bomb, challenge pages and
 raw-vs-rendered), both PDF engines, HTML escaping, and the agent-behavior scenarios' spec anchors.
 

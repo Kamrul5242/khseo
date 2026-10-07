@@ -27,9 +27,9 @@ import re
 import sys
 from pathlib import Path
 
-INVISIBLE = re.compile("[­᠎​-‏‪-‮⁠-⁤⁦-⁩﻿"
+INVISIBLE = re.compile("[\u00ad\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff"
                        "\U000e0000-\U000e007f]")
-ODD_SPACES = re.compile("[  -   　]")
+ODD_SPACES = re.compile("[\u00a0\u2000-\u200a\u202f\u205f\u3000]")
 ASCII_PUNCT = {"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-",
                "…": "..."}
 BOILERPLATE = [

@@ -125,6 +125,20 @@ class PackageStructure(unittest.TestCase):
                 bad.append(str(f.relative_to(ROOT)))
         self.assertEqual(bad, [])
 
+    def test_no_invisible_or_bidi_characters_in_source(self):
+        """Invisible/bidi/odd-space characters must be written as escapes: raw ones can be silently
+        stripped (breaking clean_text's regex) or hide code ('Trojan Source', CVE-2021-42574)."""
+        import unicodedata
+        bad = {}
+        for f in ROOT.rglob("*"):
+            if ".git" in f.parts or f.suffix not in (".md", ".json", ".py", ".yml", ".html"):
+                continue
+            hits = {f"U+{ord(c):04X}" for c in f.read_text(encoding="utf-8")
+                    if ord(c) > 127 and unicodedata.category(c) in ("Cf", "Zs", "Zl", "Zp", "Cc")}
+            if hits:
+                bad[str(f.relative_to(ROOT))] = sorted(hits)
+        self.assertEqual(bad, {})
+
     def test_json_files_parse(self):
         for js in ROOT.rglob("*.json"):
             if ".git" in js.parts:
@@ -373,12 +387,12 @@ class MetaTags(unittest.TestCase):
 
 
 class CleanText(unittest.TestCase):
-    RAW = ("Sure! Here's the rewritten intro:\nOur tee​ is soft and warm.\U000e0041 I hope this helps!\n"
+    RAW = ("Sure! Here's the rewritten intro:\nOur tee\u200b is soft\u00a0and warm.\U000e0041 I hope this helps!\n"
            "© 2026 Example Co. All rights reserved.\n")
 
     def test_removes_hidden_characters_keeps_copyright(self):
         out, rep = clean_text.clean(self.RAW)
-        self.assertNotIn("​", out)
+        self.assertNotIn("\u200b", out)
         self.assertNotIn("\U000e0041", out)
         self.assertEqual(rep["invisible_removed"], 2)
         self.assertIn("© 2026 Example Co. All rights reserved.", out, "copyright notices are never touched")

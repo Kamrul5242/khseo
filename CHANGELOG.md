@@ -2,6 +2,21 @@
 
 Newest first. Format and version rules: [RELEASING.md](RELEASING.md).
 
+## 1.4.1 — 2026-10-07   (spec 1.4, schema 1.1)
+
+### Fixed
+- README no longer hard-codes a stale test count ("59").
+- `examples/README.md`: added a Mode G (Freelancer gig) worked example.
+- `tests/run_tests.py`: the `clean_text` fixture's invisible characters are written as `\u200b` /
+  `\u00a0` escapes (same runtime strings), so watermark scanners stop flagging the source.
+
+### Security
+- Raw invisible, bidirectional-control and odd-space characters in `clean_text.py` (its detection
+  regex) and `audit_report.py` (transliteration table) are now escape sequences, with identical
+  compiled behavior. Raw bidi controls in source risk "Trojan Source" (CVE-2021-42574), and an editor
+  or cleaner stripping them would have silently disabled zero-width detection. A new test rejects
+  any such raw character in repo source.
+
 ## 1.4.0 — 2026-10-07   (spec 1.4, schema 1.1)
 
 Freelancer Gig SEO, token efficiency, and a capability router. No change to existing SEO logic,
