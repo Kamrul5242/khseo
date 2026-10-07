@@ -16,7 +16,7 @@ try:
     KHSEO_VERSION = (_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 except OSError:  # scripts copied without the package root
     KHSEO_VERSION = "unknown"
-SPEC_VERSION = "1.3"
+SPEC_VERSION = "1.4"
 SCHEMA_VERSION = "1.1"
 
 

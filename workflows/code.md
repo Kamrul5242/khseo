@@ -1,7 +1,7 @@
 # Mode B — Vibe Coder / Developer
 
 **Trigger:** a repository or project files are available, a framework is named, or the user asks
-to fix/implement SEO in code. Always read [rules/governance.md](../rules/governance.md) too.
+to fix/implement SEO in code. Always read [rules/governance.md](../rules/governance.md) §0–2 too (§3+ when R3/R4, approvals, rollback, DB or deploy are involved).
 
 ```
 CAPABILITY CHECK → DETECT → AUDIT → PLAN → GATE → IMPLEMENT → TEST → VERIFY → REPORT

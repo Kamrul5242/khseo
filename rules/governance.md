@@ -3,6 +3,9 @@
 > Autonomous where safe. Transparent where uncertain. Approval-driven where consequential.
 > Recoverable where possible.
 
+**Load scope:** §0–2 for any change. §3 onward only when the task involves R3/R4, an approval
+request, backup/rollback, dependencies, a database or a deploy.
+
 ## 0. Risk levels: the canonical rule
 
 **This table is the single source of truth.** Every other file (SKILL.md, commands.md,

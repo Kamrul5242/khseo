@@ -56,6 +56,7 @@ Full behavior is in [commands.md](commands.md).
 | `KHSEO social` | platform-native posts | drafts |
 | `KHSEO clean` | remove hidden AI artifacts from your own text | returns text |
 | `KHSEO report` | PDF report, optionally white-label or with your agency brand | creates files |
+| `KHSEO gig` | Fiverr / Upwork / Freelancer.com gig and profile SEO | drafts |
 
 ## What it covers
 
@@ -68,6 +69,7 @@ Full behavior is in [commands.md](commands.md).
 | **Structured data** | Organization, WebSite, Product/Offer, BreadcrumbList, Article, LocalBusiness, FAQPage — only when true and visible |
 | **Content** | blogs, guides, product & category copy, landing/service/about pages, rewrites, humanizing, FAQs, newsletters |
 | **Social** | platform-native posts for Facebook, Instagram, LinkedIn, X, Threads, TikTok, YouTube, Pinterest |
+| **Freelancer Gig SEO** | Fiverr, Upwork, Freelancer.com and other marketplaces: gig/service titles and descriptions, tags/skills, category, packages, FAQ, profile and portfolio SEO, competitor gigs, platform character limits |
 | **Vibe coding** | detects Next.js, Nuxt, Astro, SvelteKit, React/Vue SPAs, Laravel, Django, WordPress, Shopify, Blogger, static HTML — then plans, implements, and validates the smallest safe fix |
 
 ## How it behaves

@@ -2,6 +2,33 @@
 
 Newest first. Format and version rules: [RELEASING.md](RELEASING.md).
 
+## 1.4.0 — 2026-10-07   (spec 1.4, schema 1.1)
+
+Freelancer Gig SEO, token efficiency, and a capability router. No change to existing SEO logic,
+governance semantics or security behavior.
+
+### Added
+- **Freelancer Gig SEO (Mode G, `KHSEO gig`)** for Fiverr, Upwork, Freelancer.com and other
+  marketplaces, in `workflows/gig.md`: gig/service title and description, tags/skills, category,
+  packages, FAQ, profile and portfolio SEO, competitor-gig analysis, and platform character limits
+  (last-known values; the live editor wins). Additive only, with existing modes and commands unchanged.
+
+### Changed (token efficiency, no rule removed)
+- `SKILL.md` (loaded on every call): ~3,830 → ~2,590 tokens (−33%). The command table became a
+  grouped list (behavior stays in `commands.md`), tool docs moved to `scripts/README.md`, and a
+  **Context budget** rule was added (accuracy-first priority order; load only the mode's files;
+  never drop a rule, check or evidence to save tokens).
+- `commands.md`: agents read only the command's own section (−67% when using a command).
+- `rules/governance.md`: load scope §0–2 by default, §3+ only for R3/R4, approvals, rollback, DB or
+  deploy (−36% on routine code fixes).
+- `adapters/system-prompt.md`: now routes Mode F (and its workflows), which was missing, plus a
+  load-only-what's-needed line.
+- Tests: SKILL.md token budget (<3,000), load-scope notes, moved tool docs, adapter mode coverage.
+- **Capability router**: SKILL.md §1 is now the single capability registry
+  (`intent → capability → sub-capability → module + named rules → validate → output`), and
+  adapters defer to it. A drift-guard test fails if a mode is added to SKILL.md but not the adapter.
+- Context budget also covers sending external AI only what's needed and preferring structured data.
+
 ## 1.3.1 — 2026-09-28   (spec 1.3, schema 1.1)
 
 Open-source hardening from an external review. No change to SEO logic or governance semantics.

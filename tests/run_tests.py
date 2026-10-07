@@ -656,5 +656,85 @@ class ProbeOnFixtures(unittest.TestCase):
         json.dumps(r, default=list)
 
 
+class FreelancerGigSEO(unittest.TestCase):
+    """Additive Mode G: the module exists, is routed and discoverable, and keeps the honesty rules."""
+    GIG = ROOT / "workflows" / "gig.md"
+
+    def test_module_covers_required_assets(self):
+        text = self.GIG.read_text(encoding="utf-8").lower()
+        for need in ("fiverr", "upwork", "freelancer.com", "title", "description", "tags", "skills",
+                     "category", "packages", "faq", "profile", "portfolio", "competitor", "limit",
+                     "intent", "ctr", "conversion"):
+            self.assertIn(need, text, f"gig.md missing '{need}'")
+
+    def test_module_keeps_honesty_rules(self):
+        text = self.GIG.read_text(encoding="utf-8")
+        for rule in ("Fake reviews", "keyword stuffing", "off-platform", "UNKNOWN", "never guaranteed",
+                     "the editor wins"):
+            self.assertIn(rule, text)
+
+    def test_registered_and_discoverable(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("G · Freelancer gig SEO", skill)
+        self.assertIn("workflows/gig.md", skill)
+        self.assertRegex(skill.split("---", 2)[1], r"Fiverr")  # frontmatter description triggers the skill
+        cmds = (ROOT / "commands.md").read_text(encoding="utf-8")
+        self.assertIn("### `KHSEO gig`", cmds)
+        self.assertIn("  gig ", cmds.split("KHSEO: just type", 1)[1].split("Examples", 1)[0])
+        self.assertIn("G Freelancer gig SEO", (ROOT / "adapters" / "system-prompt.md").read_text(encoding="utf-8"))
+        self.assertIn("Freelancer Gig SEO", (ROOT / "README.md").read_text(encoding="utf-8"))
+
+    def test_existing_modes_still_present(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for mode in ("A · Auditor", "B · Vibe coder", "C · Writer", "D · Social", "E · General user",
+                     "F · Growth strategist"):
+            self.assertIn(mode, skill)
+
+
+class TokenEfficiency(unittest.TestCase):
+    """Always-loaded instructions stay lean; heavy files tell agents to load only what they need."""
+
+    def test_skill_md_token_budget(self):
+        chars = len((ROOT / "SKILL.md").read_text(encoding="utf-8"))
+        self.assertLess(chars // 4, 3000, f"SKILL.md ~{chars // 4} tokens; it loads on every call")
+
+    def test_context_budget_rule_and_load_scopes(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("**Context budget.**", skill)
+        self.assertIn("Never drop a required rule", skill)
+        self.assertIn("read only the `### KHSEO <cmd>` section",
+                      (ROOT / "commands.md").read_text(encoding="utf-8"))
+        self.assertIn("**Load scope:**", (ROOT / "rules" / "governance.md").read_text(encoding="utf-8"))
+
+    def test_moved_tool_docs_still_reachable(self):
+        docs = (ROOT / "scripts" / "README.md").read_text(encoding="utf-8")
+        for script in ("seo_probe.py", "capture_rendered.py", "audit_report.py", "validate_json.py",
+                       "meta_tags.py", "clean_text.py", "SINGLE PAGE PROBE", "Open and check the PDF"):
+            self.assertIn(script, docs)
+
+    def test_adapter_modes_match_skill_registry(self):
+        """Drift guard: the adapter fell behind SKILL.md once (mode F). Any mode added to the
+        SKILL.md registry must appear in the adapter with the same letter and name."""
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        adapter = (ROOT / "adapters" / "system-prompt.md").read_text(encoding="utf-8").lower()
+        modes = re.findall(r"\*\*([A-Z]) · ([^*]+)\*\*", skill)
+        self.assertGreaterEqual(len(modes), 7)
+        for letter, name in modes:
+            self.assertIn(f"{letter.lower()} {name.strip().lower()}", adapter, f"adapter missing mode {letter}")
+
+    def test_mode_ranges_match_registry(self):
+        """Drift guard: any 'modes A–X' range in commands.md/adapters must end at the registry's last mode."""
+        last = re.findall(r"\*\*([A-Z]) · ", (ROOT / "SKILL.md").read_text(encoding="utf-8"))[-1]
+        for f in [ROOT / "commands.md", *(ROOT / "adapters").glob("*.md")]:
+            for m in re.finditer(r"modes? A[–-]([A-Z])", f.read_text(encoding="utf-8")):
+                self.assertEqual(m.group(1), last, f"{f.name} says modes A–{m.group(1)}, registry ends at {last}")
+
+    def test_adapter_routes_every_mode(self):
+        a = (ROOT / "adapters" / "system-prompt.md").read_text(encoding="utf-8")
+        for m in ("A Auditor", "B Vibe coder", "C Writer", "D Social", "E General user",
+                  "F Growth strategist", "G Freelancer gig SEO", "keywords.md", "gig.md"):
+            self.assertIn(m, a)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -4,6 +4,9 @@
 control commands below are optional shortcuts for advanced users. KHSEO never *requires* them
 and never rejects a request because it doesn't match one.
 
+> **Agents:** read only the `### KHSEO <cmd>` section for the command in use (plus *Precedence*
+> when commands combine), not this whole file.
+
 ```text
 KHSEO make my website better for Google and AI.
 → UNDERSTAND → AUDIT → PLAN → RISK ASSESS → APPROVAL IF REQUIRED → FIX → VERIFY → REPORT
@@ -46,6 +49,7 @@ site still goes through `fix` / `optimize` / `build`):
 | `KHSEO social` | Platform-native posts from a topic, page or article | drafts only |
 | `KHSEO clean` | Remove hidden AI artifacts (invisible characters, chatbot boilerplate) from *your own* text | returns cleaned text |
 | `KHSEO report` | PDF + HTML report of an audit / ranking result, optional white-label or agency brand | creates report files |
+| `KHSEO gig` | Freelancer gig SEO: title, description, tags/skills, category, packages, FAQ, profile, portfolio (Fiverr, Upwork, Freelancer.com, others) | drafts only |
 
 Commands are case-insensitive (`khseo audit` = `KHSEO audit`), and text after the command is
 the target or instruction: `KHSEO audit https://example.com`, `KHSEO write 1500 words about …`.
@@ -57,7 +61,7 @@ the target or instruction: `KHSEO audit https://example.com`, `KHSEO write 1500 
 Detect intent → detect available context → detect tools → assess risk
 → choose workflow → execute / ask approval if required → validate → report
 ```
-Maps to modes A–E in [SKILL.md](SKILL.md). When intent is truly ambiguous and a wrong guess
+Maps to the capabilities (modes A–G today) in the registry, [SKILL.md](SKILL.md) §1. When intent is truly ambiguous and a wrong guess
 would cost real work, ask one short question. Otherwise proceed and state the assumption.
 
 ### `KHSEO audit`: read-only
@@ -152,7 +156,7 @@ No files modified. Run "KHSEO fix" to apply (R3 items will still ask for approva
 ### `KHSEO status`
 ```text
 KHSEO STATUS
-Versions:    KHSEO 1.3.1 · spec 1.3 · schema 1.1 · probe 1.2.1   (VERSION + scripts/khseo_version.py)
+Versions:    KHSEO 1.4.0 · spec 1.4 · schema 1.1 · probe 1.2.1   (VERSION + scripts/khseo_version.py)
 Task:        SEO optimization of ./shop-app
 Mode:        Vibe Coder (B)
 Priority:    P1        Risk: R2
@@ -267,6 +271,11 @@ Builds the PDF + HTML report (`scripts/audit_report.py`) from the current audit 
 removes KHSEO branding. The disclaimer, evidence labels and "Not tested" list always stay,
 because they're what make the report honest. Always open and check the PDF before handing it over.
 
+### `KHSEO gig`
+Runs [workflows/gig.md](workflows/gig.md) only. It drafts marketplace-ready gig or profile assets
+checked against each platform's character limits. KHSEO never logs into marketplace accounts or
+publishes anything; the user posts the drafts.
+
 ### `KHSEO help`
 Prints this compact card, not the whole specification:
 
@@ -286,6 +295,7 @@ Growth
 Content
   write     articles, pages, products        social    platform-native posts
   clean     strip hidden AI artifacts        report    PDF report (--brand / white-label)
+  gig       Fiverr/Upwork/Freelancer gig SEO
 Control
   status    task, tools, risk, progress      approve / reject   pending action
   rollback  undo KHSEO's own changes         stop      emergency stop
